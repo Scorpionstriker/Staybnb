@@ -74,14 +74,14 @@
                         <i class="bi bi-envelope fs-5"></i>
                         @if (unreadMessages > 0)
                         {
-                            <span class="position-absolute translate-middle badge rounded-pill bg-danger" style="top:8px;left:80%;font-size:.6rem">@unreadMessages</span>
+                            <span class="position-absolute translate-middle badge rounded-pill bg-primary" style="top:8px;left:80%;font-size:.6rem">@unreadMessages</span>
                         }
                     </a>
                     <a asp-controller="Notifications" asp-action="Index" class="btn btn-link text-dark position-relative" title="Notifications">
                         <i class="bi bi-bell fs-5"></i>
                         @if (unread > 0)
                         {
-                            <span class="position-absolute translate-middle badge rounded-pill bg-danger" style="top:8px;left:80%;font-size:.6rem">@unread</span>
+                            <span class="position-absolute translate-middle badge rounded-pill bg-primary" style="top:8px;left:80%;font-size:.6rem">@unread</span>
                         }
                     </a>
                 }
@@ -128,7 +128,7 @@
                                     <i class="bi bi-envelope me-2"></i>Messages
                                     @if (unreadMessages > 0)
                                     {
-                                        <span class="badge rounded-pill bg-danger ms-auto">@unreadMessages</span>
+                                        <span class="badge rounded-pill bg-primary ms-auto">@unreadMessages</span>
                                     }
                                 </a>
                             </li>
@@ -137,7 +137,7 @@
                                     <i class="bi bi-bell me-2"></i>Notifications
                                     @if (unread > 0)
                                     {
-                                        <span class="badge rounded-pill bg-danger ms-auto">@unread</span>
+                                        <span class="badge rounded-pill bg-primary ms-auto">@unread</span>
                                     }
                                 </a>
                             </li>

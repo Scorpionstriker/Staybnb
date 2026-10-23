@@ -7,7 +7,7 @@
     var tabs = new (string Key, string Label, int Count, string Css)[]
     {
         ("all", "All", Model.AllCount, "text-bg-light"),
-        ("unread", "Unread", Model.UnreadCount, "text-bg-danger"),
+        ("unread", "Unread", Model.UnreadCount, "text-bg-primary"),
         ("read", "Read", Model.ReadCount, "text-bg-success"),
         ("today", "Today", Model.TodayCount, "text-bg-warning")
     };
@@ -20,7 +20,7 @@
                 Notifications
                 @if (Model.UnreadCount > 0)
                 {
-                    <span class="badge rounded-pill bg-danger align-middle">@Model.UnreadCount new</span>
+                    <span class="badge rounded-pill bg-primary align-middle">@Model.UnreadCount new</span>
                 }
             </h1>
             @if (Model.UnreadCount > 0)

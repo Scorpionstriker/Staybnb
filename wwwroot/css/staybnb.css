@@ -1,7 +1,7 @@
-/* Staybnb shared styles (Airbnb-inspired) */
+/* Staybnb shared styles (blue theme) */
 :root {
-    --stb-primary: #ff385c;
-    --stb-primary-dark: #e31c5f;
+    --stb-primary: #2563eb;
+    --stb-primary-dark: #1d4ed8;
     --stb-text: #222222;
     --stb-muted: #717171;
     --stb-border: #dddddd;
@@ -344,7 +344,7 @@ body {
     }
 
     .stb-side-link.active {
-        background: #fff0f3;
+        background: #eef4ff;
         color: var(--stb-primary);
         font-weight: 600;
     }
@@ -435,7 +435,7 @@ body {
 .stb-icon-purple { background: #f1e8fd; color: #7e3af2; }
 .stb-icon-green { background: #e7f6ec; color: #1e7b34; }
 .stb-icon-orange { background: #fff4e5; color: #b25e09; }
-.stb-icon-pink { background: #fff0f3; color: var(--stb-primary); }
+.stb-icon-pink { background: #eef4ff; color: var(--stb-primary); }
 
 /* Property list cards (My Properties) */
 .stb-property-row img {
@@ -864,7 +864,7 @@ body {
     }
 
     .stb-convo.active {
-        background: #fff0f3;
+        background: #eef4ff;
     }
 
     .stb-convo.unread {
@@ -924,12 +924,12 @@ body {
     }
 
     .stb-notification.unread {
-        background: #fff7f8;
+        background: #f5f8ff;
         border-left: 3px solid var(--stb-primary);
     }
 
     .stb-notification.selected {
-        background: #ffe8ec;
+        background: #e3ecff;
     }
 
 .stb-unread-dot {

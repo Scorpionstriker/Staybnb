@@ -68,7 +68,7 @@
                             <span>@item.Label</span>
                             @if (item.Label == "Notifications" && unreadCount > 0)
                             {
-                                <span class="badge rounded-pill bg-danger ms-auto">@unreadCount</span>
+                                <span class="badge rounded-pill bg-primary ms-auto">@unreadCount</span>
                             }
                             @if (item.Label == "Host Requests" && pendingApps > 0)
                             {
@@ -76,7 +76,7 @@
                             }
                             @if (item.Label == "Messages" && unreadMessages > 0)
                             {
-                                <span class="badge rounded-pill bg-danger ms-auto">@unreadMessages</span>
+                                <span class="badge rounded-pill bg-primary ms-auto">@unreadMessages</span>
                             }
                         </a>
                     }
@@ -104,14 +104,14 @@
                         <i class="bi bi-envelope"></i>
                         @if (unreadMessages > 0)
                         {
-                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size:.6rem">@unreadMessages</span>
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary" style="font-size:.6rem">@unreadMessages</span>
                         }
                     </a>
                     <a asp-controller="Notifications" asp-action="Index" class="text-dark fs-5 position-relative" title="Notifications">
                         <i class="bi bi-bell"></i>
                         @if (unreadCount > 0)
                         {
-                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size:.6rem">@unreadCount</span>
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary" style="font-size:.6rem">@unreadCount</span>
                         }
                     </a>
                     <div class="dropdown">
