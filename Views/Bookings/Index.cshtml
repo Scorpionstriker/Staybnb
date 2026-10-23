@@ -1,0 +1,76 @@
+@using Staybnb.Models.Enums
+@model Staybnb.Models.ViewModels.Guest.MyTripsViewModel
+@{
+    ViewData["Title"] = "My trips";
+    var tabs = new (string Key, string Label, int? Count)[]
+    {
+        ("upcoming", "Upcoming", Model.UpcomingCount),
+        ("pending", "Awaiting Host", Model.PendingCount),
+        ("past", "Past", null),
+        ("cancelled", "Cancelled / declined", null)
+    };
+}
+
+<div class="py-4">
+    <h1 class="h3 fw-bold mb-3">Trips</h1>
+
+    <ul class="nav stb-tabs mb-4">
+        @foreach (var tab in tabs)
+        {
+            <li class="nav-item">
+                <a class="nav-link @(Model.Filter == tab.Key ? "active" : "")" asp-action="Index" asp-route-filter="@tab.Key">
+                    @tab.Label
+                    @if (tab.Count > 0)
+                    {
+                        <span class="badge rounded-pill text-bg-light">@tab.Count</span>
+                    }
+                </a>
+            </li>
+        }
+    </ul>
+
+    @if (!Model.Bookings.Any())
+    {
+        <div class="stb-card text-center py-5">
+            <i class="bi bi-suitcase display-5"></i>
+            <h2 class="h5 fw-semibold mt-3">No trips here yet</h2>
+            <p class="text-muted">Time to dust off your bags and start planning your next adventure.</p>
+            <a asp-controller="Properties" asp-action="Index" class="btn btn-outline-stb">Start searching</a>
+        </div>
+    }
+
+    <div class="row g-4">
+        @foreach (var b in Model.Bookings)
+        {
+            var cover = b.Property.Images.OrderByDescending(i => i.IsCover).Select(i => i.ImageUrl).FirstOrDefault();
+            <div class="col-md-6 col-xl-4">
+                <a asp-action="Details" asp-route-id="@b.Id" class="stb-card d-block p-0 overflow-hidden text-decoration-none text-dark h-100">
+                    @if (cover != null)
+                    {
+                        <img src="@cover" alt="" class="w-100" style="height:180px;object-fit:cover" />
+                    }
+                    <div class="p-3">
+                        <div class="d-flex justify-content-between align-items-start gap-2">
+                            <div>
+                                <div class="fw-semibold">@b.Property.City</div>
+                                <div class="small text-muted">@b.Property.Title &middot; hosted by @b.Property.Host.FirstName</div>
+                            </div>
+                            <span class="stb-badge stb-badge-@b.Status.ToString().ToLowerInvariant()">@b.Status</span>
+                        </div>
+                        <div class="small mt-2">
+                            <i class="bi bi-calendar3"></i> @b.CheckInDate.ToString("dd MMM") - @b.CheckOutDate.ToString("dd MMM yyyy")
+                            &middot; @b.Nights night(s) &middot; R @b.TotalPrice.ToString("N0")
+                        </div>
+                        @if (b.Status == BookingStatus.Approved)
+                        {
+                            <div class="small mt-2 fw-semibold text-stb">
+                                <i class="bi bi-person-vcard"></i>
+                                @(b.GuestCheckIn == null ? "Complete online check-in" : $"Check-in: {b.GuestCheckIn.Status}")
+                            </div>
+                        }
+                    </div>
+                </a>
+            </div>
+        }
+    </div>
+</div>

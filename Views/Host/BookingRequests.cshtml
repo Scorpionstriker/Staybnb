@@ -1,0 +1,158 @@
+@using Staybnb.Models.Enums
+@model Staybnb.Models.ViewModels.Host.HostBookingsViewModel
+@{
+    ViewData["Title"] = "Booking Requests";
+    var tabs = new (string Key, string Label, int? Count)[]
+    {
+        ("pending", "Pending", Model.PendingCount),
+        ("upcoming", "Upcoming", Model.UpcomingCount),
+        ("checkedin", "Checked in", Model.CheckedInCount),
+        ("past", "Past", null),
+        ("all", "All", null)
+    };
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <ul class="nav stb-tabs">
+        @foreach (var tab in tabs)
+        {
+            <li class="nav-item">
+                <a class="nav-link @(Model.Filter == tab.Key ? "active" : "")" asp-action="BookingRequests"
+                   asp-route-filter="@tab.Key" asp-route-propertyId="@Model.PropertyId">
+                    @tab.Label
+                    @if (tab.Count.HasValue && tab.Count > 0)
+                    {
+                        <span class="badge rounded-pill @(tab.Key == "pending" ? "text-bg-warning" : "text-bg-light")">@tab.Count</span>
+                    }
+                </a>
+            </li>
+        }
+    </ul>
+
+    <form method="get" asp-action="BookingRequests" class="d-flex gap-2">
+        <input type="hidden" name="filter" value="@Model.Filter" />
+        <select name="propertyId" class="form-select form-select-sm" onchange="this.form.submit()" aria-label="Filter by property">
+            <option value="">All properties</option>
+            @foreach (var p in Model.Properties)
+            {
+                if (Model.PropertyId == p.Id)
+                {
+                    <option value="@p.Id" selected>@p.Title</option>
+                }
+                else
+                {
+                    <option value="@p.Id">@p.Title</option>
+                }
+            }
+        </select>
+    </form>
+</div>
+
+@if (!Model.Bookings.Any())
+{
+    <div class="stb-card text-center text-muted py-5">
+        <i class="bi bi-calendar-x display-5"></i>
+        <p class="mt-2 mb-0">No bookings in this list.</p>
+    </div>
+}
+
+@foreach (var b in Model.Bookings)
+{
+    var cover = b.Property.Images.OrderByDescending(i => i.IsCover).FirstOrDefault();
+    var checkIn = b.GuestCheckIn;
+
+    <div class="stb-card mb-3">
+        <div class="row g-3 align-items-center">
+            <div class="col-md-4 d-flex align-items-center gap-3">
+                <span class="stb-avatar">@($"{b.Guest.FirstName.FirstOrDefault()}{b.Guest.LastName.FirstOrDefault()}".ToUpper())</span>
+                <div class="small">
+                    <div class="fw-semibold fs-6">@b.Guest.FullName</div>
+                    <div class="text-muted">@b.Guest.Email</div>
+                    <div class="text-muted">Booking #@b.Id &middot; requested @b.CreatedAt.ToLocalTime().ToString("dd MMM yyyy")</div>
+                    <a asp-controller="Messages" asp-action="Conversation" asp-route-userId="@b.GuestId" asp-route-propertyId="@b.PropertyId"
+                       class="small fw-semibold text-dark"><i class="bi bi-chat"></i> Message guest</a>
+                </div>
+            </div>
+            <div class="col-md-4 d-flex align-items-center gap-2 small">
+                @if (cover != null)
+                {
+                    <img src="@cover.ImageUrl" class="stb-thumb" alt="" />
+                }
+                <div>
+                    <div class="fw-semibold">@b.Property.Title</div>
+                    <div class="text-muted">
+                        @b.CheckInDate.ToString("ddd dd MMM") &rarr; @b.CheckOutDate.ToString("ddd dd MMM yyyy")
+                    </div>
+                    <div class="text-muted">@b.Nights night(s) &middot; @b.NumberOfGuests guest(s)</div>
+                </div>
+            </div>
+            <div class="col-md-2 small">
+                <div class="fw-bold fs-6">R @b.TotalPrice.ToString("N2")</div>
+                <div class="text-muted">You earn R @((b.TotalPrice - b.ServiceFee).ToString("N2"))</div>
+                <span class="stb-badge stb-badge-@b.Status.ToString().ToLowerInvariant() mt-1">@b.Status</span>
+                @if (b.Payment != null && b.Payment.Status == PaymentStatus.Paid)
+                {
+                    <span class="stb-badge stb-badge-paid mt-1">Paid</span>
+                }
+            </div>
+            <div class="col-md-2 text-md-end">
+                @switch (b.Status)
+                {
+                    case BookingStatus.Pending:
+                        <form asp-action="ApproveBooking" asp-route-id="@b.Id" method="post" class="mb-2">
+                            <input type="hidden" name="returnFilter" value="@Model.Filter" />
+                            <button type="submit" class="btn btn-success btn-sm w-100"><i class="bi bi-check-lg"></i> Approve</button>
+                        </form>
+                        <button class="btn btn-outline-danger btn-sm w-100" type="button" data-bs-toggle="collapse" data-bs-target="#reject-@b.Id">
+                            <i class="bi bi-x-lg"></i> Reject
+                        </button>
+                        break;
+
+                    case BookingStatus.Approved:
+                        if (checkIn?.Status == CheckInStatus.Submitted)
+                        {
+                            <a asp-action="ReviewCheckIn" asp-route-id="@checkIn.Id" class="btn btn-stb btn-sm w-100"><i class="bi bi-person-vcard"></i> Verify check-in</a>
+                        }
+                        else
+                        {
+                            <span class="small text-muted">
+                                Check-in: @(checkIn == null ? "not started" : checkIn.Status.ToString())
+                            </span>
+                        }
+                        break;
+
+                    case BookingStatus.CheckedIn:
+                        if (b.CheckOutDate <= DateTime.Today)
+                        {
+                            <form asp-action="CompleteBooking" asp-route-id="@b.Id" method="post">
+                                <input type="hidden" name="returnFilter" value="@Model.Filter" />
+                                <button type="submit" class="btn btn-outline-stb btn-sm w-100"><i class="bi bi-flag"></i> Mark completed</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <span class="small text-muted">Guest is staying</span>
+                        }
+                        break;
+                }
+            </div>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(b.GuestMessage))
+        {
+            <div class="mt-3 p-2 bg-light rounded small"><i class="bi bi-chat-left-quote me-1"></i>@b.GuestMessage</div>
+        }
+
+        @if (b.Status == BookingStatus.Pending)
+        {
+            <div class="collapse mt-3" id="reject-@b.Id">
+                <form asp-action="RejectBooking" asp-route-id="@b.Id" method="post" class="d-flex flex-column flex-md-row gap-2">
+                    <input type="hidden" name="returnFilter" value="@Model.Filter" />
+                    <input type="text" name="reason" class="form-control form-control-sm" maxlength="300"
+                           placeholder="Optional message to the guest, e.g. 'Sorry, we have maintenance that week.'" />
+                    <button type="submit" class="btn btn-danger btn-sm">Confirm rejection</button>
+                </form>
+            </div>
+        }
+    </div>
+}

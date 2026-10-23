@@ -1,0 +1,48 @@
+@using Staybnb.Models.Entities
+@using Staybnb.Models.Enums
+@* One table of guest check-ins. Used three times by CheckIns.cshtml.
+   Model = (the check-ins to show, the text to show when the list is empty) *@
+@model (List<GuestCheckIn> Items, string EmptyText)
+
+@if (!Model.Items.Any())
+{
+    <p class="text-muted small mb-0">@Model.EmptyText</p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table align-middle stb-table mb-0">
+            <thead>
+                <tr>
+                    <th>Guest</th>
+                    <th>Property</th>
+                    <th>Stay</th>
+                    <th>Documents</th>
+                    <th>Status</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var c in Model.Items)
+                {
+                    var verified = c.Documents.Count(d => d.Status == DocumentStatus.Verified);
+                    var badge = c.Status == CheckInStatus.Verified ? "stb-badge-verified"
+                              : c.Status == CheckInStatus.Rejected ? "stb-badge-rejected"
+                              : "stb-badge-pending";
+                    <tr>
+                        <td class="fw-semibold">@c.Booking.Guest.FullName</td>
+                        <td class="small">@c.Booking.Property.Title</td>
+                        <td class="small">@c.Booking.CheckInDate.ToString("dd MMM") - @c.Booking.CheckOutDate.ToString("dd MMM yyyy")</td>
+                        <td class="small">@verified / @c.Documents.Count verified</td>
+                        <td><span class="stb-badge @badge">@c.Status</span></td>
+                        <td class="text-end">
+                            <a asp-action="ReviewCheckIn" asp-route-id="@c.Id" class="btn btn-sm @(c.Status == CheckInStatus.Submitted ? "btn-stb" : "btn-outline-stb")">
+                                @(c.Status == CheckInStatus.Submitted ? "Verify" : "View")
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

@@ -1,47 +1,226 @@
-﻿<!DOCTYPE html>
+@using Microsoft.AspNetCore.Identity
+@using Staybnb.Models.Constants
+@using Staybnb.Models.Entities
+@using Staybnb.Models.Enums
+@using Staybnb.Services.Interfaces
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+@inject INotificationService Notifications
+@inject IMessageService Messages
+@{
+    var isSignedIn = SignInManager.IsSignedIn(User);
+    var currentUser = isSignedIn ? await UserManager.GetUserAsync(User) : null;
+    var unread = currentUser == null ? 0 : await Notifications.GetUnreadCountAsync(currentUser.Id);
+    var unreadMessages = currentUser == null ? 0 : await Messages.GetUnreadCountAsync(currentUser.Id);
+    var initials = currentUser == null ? "" : $"{currentUser.FirstName.FirstOrDefault()}{currentUser.LastName.FirstOrDefault()}".ToUpper();
+    var isGuest = User.IsInRole(Roles.Guest);
+    var isHost = User.IsInRole(Roles.Host);
+    var isAdmin = User.IsInRole(Roles.Admin) || User.IsInRole(Roles.SuperAdmin);
+
+    // Keep the search bar filled in with whatever was searched
+    var q = Context.Request.Query;
+    string city = q["City"].ToString(), checkIn = q["CheckIn"].ToString(), checkOut = q["CheckOut"].ToString(),
+           guests = q["Guests"].ToString(), type = q["Type"].ToString();
+}
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Staybnb</title>
-    <script type="importmap"></script>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <partial name="_StaybnbAssets" />
     <link rel="stylesheet" href="~/Staybnb.styles.css" asp-append-version="true" />
 </head>
-<body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Staybnb</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
+<body class="d-flex flex-column min-vh-100">
+    <header class="stb-header">
+        <div class="container-xl d-flex align-items-center justify-content-between gap-3 py-3">
+            <a class="stb-logo" asp-controller="Properties" asp-action="Index">
+                <i class="bi bi-house-heart-fill"></i><span class="d-none d-md-inline">staybnb</span>
+            </a>
+
+            @* ---------- Search pill (opens the full search bar) ---------- *@
+            <button class="stb-search-pill" type="button" data-bs-toggle="collapse" data-bs-target="#searchPanel" aria-expanded="false" aria-controls="searchPanel">
+                <span class="fw-semibold">@(string.IsNullOrEmpty(city) ? "Anywhere" : city)</span>
+                <span class="stb-divider"></span>
+                <span class="fw-semibold">@(string.IsNullOrEmpty(checkIn) ? "Any week" : $"{checkIn} → {checkOut}")</span>
+                <span class="stb-divider d-none d-sm-inline"></span>
+                <span class="text-muted d-none d-sm-inline">@(string.IsNullOrEmpty(guests) ? "Add guests" : $"{guests} guest(s)")</span>
+                <span class="stb-search-icon"><i class="bi bi-search"></i></span>
+            </button>
+
+            <nav class="d-flex align-items-center gap-1">
+                @if (isGuest)
+                {
+                    <a class="btn btn-link text-dark text-decoration-none fw-semibold d-none d-lg-inline" asp-controller="HostApplication" asp-action="Status">Host Application Status</a>
+                    <a class="btn btn-link text-dark text-decoration-none fw-semibold d-none d-md-inline" asp-controller="HostApplication" asp-action="Apply">Become a Host</a>
+                }
+                else if (isHost)
+                {
+                    <a class="btn btn-link text-dark text-decoration-none fw-semibold d-none d-md-inline" asp-controller="Host" asp-action="Dashboard">Switch to hosting</a>
+                }
+                else if (isAdmin)
+                {
+                    <a class="btn btn-link text-dark text-decoration-none fw-semibold d-none d-md-inline" asp-controller="Admin" asp-action="Index">Admin dashboard</a>
+                }
+                else if (!isSignedIn)
+                {
+                    <a class="btn btn-link text-dark text-decoration-none fw-semibold d-none d-md-inline" asp-controller="Account" asp-action="Register">Become a Host</a>
+                }
+
+                @if (isSignedIn)
+                {
+                    <a asp-controller="Messages" asp-action="Index" class="btn btn-link text-dark position-relative d-none d-sm-inline" title="Messages">
+                        <i class="bi bi-envelope fs-5"></i>
+                        @if (unreadMessages > 0)
+                        {
+                            <span class="position-absolute translate-middle badge rounded-pill bg-danger" style="top:8px;left:80%;font-size:.6rem">@unreadMessages</span>
+                        }
+                    </a>
+                    <a asp-controller="Notifications" asp-action="Index" class="btn btn-link text-dark position-relative" title="Notifications">
+                        <i class="bi bi-bell fs-5"></i>
+                        @if (unread > 0)
+                        {
+                            <span class="position-absolute translate-middle badge rounded-pill bg-danger" style="top:8px;left:80%;font-size:.6rem">@unread</span>
+                        }
+                    </a>
+                }
+
+                <div class="dropdown">
+                    <button class="stb-user-menu" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="User menu">
+                        <i class="bi bi-list fs-5"></i>
+                        @if (isSignedIn)
+                        {
+                            <span class="stb-avatar" style="width:30px;height:30px;font-size:.75rem">@initials</span>
+                        }
+                        else
+                        {
+                            <i class="bi bi-person-circle fs-4 text-secondary"></i>
+                        }
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-4 py-2" style="min-width:240px">
+                        @if (!isSignedIn)
+                        {
+                            <li><a class="dropdown-item fw-semibold py-2" asp-controller="Account" asp-action="Register">Sign up</a></li>
+                            <li><a class="dropdown-item py-2" asp-controller="Account" asp-action="Login">Log in</a></li>
+                            <li><hr class="dropdown-divider" /></li>
+                            <li><a class="dropdown-item py-2" asp-controller="Account" asp-action="Register">Become a Host</a></li>
+                        }
+                        else
+                        {
+                            <li class="px-3 pb-2 small text-muted">Signed in as<br /><strong class="text-dark">@currentUser?.FullName</strong></li>
+                            <li><hr class="dropdown-divider" /></li>
+                            if (isGuest)
+                            {
+                                <li><a class="dropdown-item fw-semibold py-2" asp-controller="Bookings" asp-action="Index"><i class="bi bi-suitcase me-2"></i>My trips</a></li>
+                                <li><a class="dropdown-item py-2" asp-controller="Wishlist" asp-action="Index"><i class="bi bi-heart me-2"></i>Wishlist</a></li>
+                            }
+                            if (isHost)
+                            {
+                                <li><a class="dropdown-item fw-semibold py-2" asp-controller="Host" asp-action="Dashboard"><i class="bi bi-speedometer2 me-2"></i>Host dashboard</a></li>
+                            }
+                            if (isAdmin)
+                            {
+                                <li><a class="dropdown-item fw-semibold py-2" asp-controller="Admin" asp-action="Index"><i class="bi bi-shield-lock me-2"></i>Admin dashboard</a></li>
+                            }
+                            <li>
+                                <a class="dropdown-item py-2 d-flex align-items-center" asp-controller="Messages" asp-action="Index">
+                                    <i class="bi bi-envelope me-2"></i>Messages
+                                    @if (unreadMessages > 0)
+                                    {
+                                        <span class="badge rounded-pill bg-danger ms-auto">@unreadMessages</span>
+                                    }
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item py-2 d-flex align-items-center" asp-controller="Notifications" asp-action="Index">
+                                    <i class="bi bi-bell me-2"></i>Notifications
+                                    @if (unread > 0)
+                                    {
+                                        <span class="badge rounded-pill bg-danger ms-auto">@unread</span>
+                                    }
+                                </a>
+                            </li>
+                            if (isGuest)
+                            {
+                                <li><hr class="dropdown-divider" /></li>
+                                <li><a class="dropdown-item py-2" asp-controller="HostApplication" asp-action="Apply">Become a Host</a></li>
+                                <li><a class="dropdown-item py-2" asp-controller="HostApplication" asp-action="Status">Host application status</a></li>
+                            }
+                            <li><hr class="dropdown-divider" /></li>
+                            <li>
+                                <form asp-controller="Account" asp-action="Logout" method="post">
+                                    <button type="submit" class="dropdown-item py-2">Log out</button>
+                                </form>
+                            </li>
+                        }
                     </ul>
                 </div>
-            </div>
-        </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
+            </nav>
+        </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - Staybnb - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+        @* ---------- Full search bar ---------- *@
+        <div class="collapse border-top" id="searchPanel">
+            <form asp-controller="Properties" asp-action="Index" method="get" class="container-xl py-3">
+                <div class="stb-search-bar row g-2 align-items-end">
+                    <div class="col-12 col-md-3">
+                        <label class="form-label small fw-semibold mb-1" for="searchCity">Where</label>
+                        <input id="searchCity" name="City" value="@city" class="form-control" placeholder="Search destinations" />
+                    </div>
+                    <div class="col-6 col-md-2">
+                        <label class="form-label small fw-semibold mb-1" for="searchCheckIn">Check in</label>
+                        <input id="searchCheckIn" name="CheckIn" type="date" value="@checkIn" min="@DateTime.Today.ToString("yyyy-MM-dd")" class="form-control" />
+                    </div>
+                    <div class="col-6 col-md-2">
+                        <label class="form-label small fw-semibold mb-1" for="searchCheckOut">Check out</label>
+                        <input id="searchCheckOut" name="CheckOut" type="date" value="@checkOut" min="@DateTime.Today.AddDays(1).ToString("yyyy-MM-dd")" class="form-control" />
+                    </div>
+                    <div class="col-6 col-md-2">
+                        <label class="form-label small fw-semibold mb-1" for="searchGuests">Who</label>
+                        <input id="searchGuests" name="Guests" type="number" min="1" max="50" value="@guests" class="form-control" placeholder="Guests" />
+                    </div>
+                    <div class="col-6 col-md-2">
+                        <label class="form-label small fw-semibold mb-1" for="searchType">Type</label>
+                        <select id="searchType" name="Type" class="form-select">
+                            <option value="">Any type</option>
+                            @foreach (var t in Enum.GetValues<PropertyType>())
+                            {
+                                if (t.ToString() == type)
+                                {
+                                    <option value="@t" selected>@t</option>
+                                }
+                                else
+                                {
+                                    <option value="@t">@t</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-1 d-grid">
+                        <button type="submit" class="btn btn-stb" aria-label="Search"><i class="bi bi-search"></i></button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </header>
+
+    <main class="flex-grow-1">
+        <div class="container-xl pb-5">
+            <partial name="_Alerts" />
+            @RenderBody()
+        </div>
+    </main>
+
+    <footer class="border-top bg-light py-4 mt-auto">
+        <div class="container-xl d-flex flex-wrap justify-content-between gap-2 small text-muted">
+            <span>&copy; @DateTime.Now.Year Staybnb &middot; A student project inspired by Airbnb</span>
+            <span>
+                <a asp-controller="Properties" asp-action="Index" class="text-muted">Explore stays</a> &middot;
+                <a asp-controller="Home" asp-action="Privacy" class="text-muted">Privacy</a>
+            </span>
         </div>
     </footer>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>

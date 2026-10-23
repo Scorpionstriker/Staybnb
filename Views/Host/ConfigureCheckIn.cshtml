@@ -1,0 +1,172 @@
+@model Staybnb.Models.ViewModels.Host.CheckInProcessViewModel
+@{
+    ViewData["Title"] = "Check-in Rules";
+    var properties = ViewBag.Properties as List<Staybnb.Models.ViewModels.Host.HostPropertyOption> ?? new();
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div>
+        <h2 class="h5 fw-bold mb-0">@Model.PropertyTitle</h2>
+        <p class="text-muted small mb-0">Define the steps and documents every guest must complete before check-in.</p>
+    </div>
+    @if (properties.Count > 1)
+    {
+        <form method="get" asp-action="ConfigureCheckIn">
+            <select name="propertyId" class="form-select form-select-sm" onchange="this.form.submit()" aria-label="Choose property">
+                @foreach (var p in properties)
+                {
+                    if (p.Id == Model.PropertyId)
+                    {
+                        <option value="@p.Id" selected>@p.Title</option>
+                    }
+                    else
+                    {
+                        <option value="@p.Id">@p.Title</option>
+                    }
+                }
+            </select>
+        </form>
+    }
+</div>
+
+<form asp-action="ConfigureCheckIn" method="post" id="checkInForm">
+    <input type="hidden" asp-for="PropertyId" />
+    <div asp-validation-summary="All" class="alert alert-danger"></div>
+
+    <div class="stb-card mb-3">
+        <label asp-for="Title" class="form-label fw-semibold">Process title</label>
+        <input asp-for="Title" class="form-control" />
+        <span asp-validation-for="Title" class="text-danger small"></span>
+    </div>
+
+    <div id="stepsContainer">
+        @for (var i = 0; i < Model.Steps.Count; i++)
+        {
+            <div class="stb-step-card" data-step>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="fw-bold"><span class="stb-step-number" data-step-number>@(i + 1)</span>Step</span>
+                    <div class="btn-group btn-group-sm">
+                        <button type="button" class="btn btn-light" data-move="up" title="Move up"><i class="bi bi-arrow-up"></i></button>
+                        <button type="button" class="btn btn-light" data-move="down" title="Move down"><i class="bi bi-arrow-down"></i></button>
+                        <button type="button" class="btn btn-light text-danger" data-remove title="Remove step"><i class="bi bi-trash"></i></button>
+                    </div>
+                </div>
+                <div class="row g-2">
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Step title</label>
+                        <input class="form-control" data-field="Title" name="Steps[@i].Title" value="@Model.Steps[i].Title" maxlength="100" required />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Document required (if any)</label>
+                        <input class="form-control" data-field="DocumentType" name="Steps[@i].DocumentType" value="@Model.Steps[i].DocumentType"
+                               placeholder="e.g. ID or Passport" maxlength="100" />
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label small fw-semibold">Instructions / rules for the guest</label>
+                        <textarea class="form-control" data-field="Instructions" name="Steps[@i].Instructions" rows="2" maxlength="1000">@Model.Steps[i].Instructions</textarea>
+                    </div>
+                    <div class="col-12">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="true" data-field="RequiresDocument"
+                                   name="Steps[@i].RequiresDocument" id="req-@i" checked="@Model.Steps[i].RequiresDocument" />
+                            <input type="hidden" value="false" data-field="RequiresDocument" name="Steps[@i].RequiresDocument" />
+                            <label class="form-check-label small" for="req-@i">Guest must upload a document in this step (e.g. ID or passport)</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="d-flex flex-wrap justify-content-between gap-2 mb-4">
+        <button type="button" class="btn btn-outline-stb" id="addStep"><i class="bi bi-plus-lg me-1"></i>Add step</button>
+        <button type="submit" class="btn btn-stb px-4">Save check-in process</button>
+    </div>
+</form>
+
+@* Blank step used by JavaScript when "Add step" is clicked *@
+<template id="stepTemplate">
+    <div class="stb-step-card" data-step>
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="fw-bold"><span class="stb-step-number" data-step-number>#</span>Step</span>
+            <div class="btn-group btn-group-sm">
+                <button type="button" class="btn btn-light" data-move="up" title="Move up"><i class="bi bi-arrow-up"></i></button>
+                <button type="button" class="btn btn-light" data-move="down" title="Move down"><i class="bi bi-arrow-down"></i></button>
+                <button type="button" class="btn btn-light text-danger" data-remove title="Remove step"><i class="bi bi-trash"></i></button>
+            </div>
+        </div>
+        <div class="row g-2">
+            <div class="col-md-6">
+                <label class="form-label small fw-semibold">Step title</label>
+                <input class="form-control" data-field="Title" maxlength="100" required />
+            </div>
+            <div class="col-md-6">
+                <label class="form-label small fw-semibold">Document required (if any)</label>
+                <input class="form-control" data-field="DocumentType" placeholder="e.g. ID or Passport" maxlength="100" />
+            </div>
+            <div class="col-12">
+                <label class="form-label small fw-semibold">Instructions / rules for the guest</label>
+                <textarea class="form-control" data-field="Instructions" rows="2" maxlength="1000"></textarea>
+            </div>
+            <div class="col-12">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="true" data-field="RequiresDocument" />
+                    <input type="hidden" value="false" data-field="RequiresDocument" />
+                    <label class="form-check-label small">Guest must upload a document in this step (e.g. ID or passport)</label>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+@section Scripts {
+    <script>
+        // Keeps the "Steps[0].Title", "Steps[1].Title"... names in order so MVC model binding works
+        (function () {
+            const container = document.getElementById("stepsContainer");
+            const template = document.getElementById("stepTemplate");
+
+            function renumber() {
+                container.querySelectorAll("[data-step]").forEach((card, index) => {
+                    card.querySelector("[data-step-number]").textContent = index + 1;
+                    card.querySelectorAll("[data-field]").forEach(field => {
+                        field.name = `Steps[${index}].${field.dataset.field}`;
+                    });
+                    const checkbox = card.querySelector('input[type="checkbox"]');
+                    const label = checkbox.parentElement.querySelector("label");
+                    checkbox.id = `req-${index}`;
+                    label.htmlFor = checkbox.id;
+                });
+            }
+
+            document.getElementById("addStep").addEventListener("click", () => {
+                if (container.querySelectorAll("[data-step]").length >= 10) {
+                    alert("A check-in process can have at most 10 steps.");
+                    return;
+                }
+                container.appendChild(template.content.cloneNode(true));
+                renumber();
+                container.lastElementChild.querySelector('[data-field="Title"]').focus();
+            });
+
+            container.addEventListener("click", e => {
+                const button = e.target.closest("button");
+                if (!button) return;
+                const card = button.closest("[data-step]");
+
+                if (button.hasAttribute("data-remove")) {
+                    if (container.querySelectorAll("[data-step]").length === 1) {
+                        alert("Keep at least one step.");
+                        return;
+                    }
+                    card.remove();
+                } else if (button.dataset.move === "up" && card.previousElementSibling) {
+                    container.insertBefore(card, card.previousElementSibling);
+                } else if (button.dataset.move === "down" && card.nextElementSibling) {
+                    container.insertBefore(card.nextElementSibling, card);
+                }
+                renumber();
+            });
+        })();
+    </script>
+}

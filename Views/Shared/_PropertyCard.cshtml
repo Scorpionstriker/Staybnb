@@ -1,0 +1,88 @@
+@using Staybnb.Models.Constants
+@model Staybnb.Models.ViewModels.Guest.PropertyCardViewModel
+@{
+    // Carry the searched dates/guests through to the details page
+    var q = Context.Request.Query;
+    var detailsUrl = Url.Action("View", "Properties", new
+    {
+        id = Model.Id,
+        checkIn = string.IsNullOrEmpty(q["CheckIn"]) ? null : q["CheckIn"].ToString(),
+        checkOut = string.IsNullOrEmpty(q["CheckOut"]) ? null : q["CheckOut"].ToString(),
+        guests = string.IsNullOrEmpty(q["Guests"]) ? null : q["Guests"].ToString()
+    });
+    var carouselId = $"card-carousel-{Model.Id}";
+    var returnUrl = Context.Request.Path + Context.Request.QueryString;
+}
+
+<div class="stb-card-listing">
+    <div class="stb-card-img">
+        @if (Model.ImageUrls.Count > 1)
+        {
+            <div id="@carouselId" class="carousel slide" data-bs-interval="false">
+                <div class="carousel-indicators mb-1">
+                    @for (var i = 0; i < Model.ImageUrls.Count; i++)
+                    {
+                        <button type="button" data-bs-target="#@carouselId" data-bs-slide-to="@i" class="@(i == 0 ? "active" : "")" aria-label="Photo @(i + 1)"></button>
+                    }
+                </div>
+                <div class="carousel-inner">
+                    @for (var i = 0; i < Model.ImageUrls.Count; i++)
+                    {
+                        <a href="@detailsUrl" class="carousel-item @(i == 0 ? "active" : "")">
+                            <img src="@Model.ImageUrls[i]" alt="@Model.Title photo @(i + 1)" loading="lazy" />
+                        </a>
+                    }
+                </div>
+                <button class="carousel-control-prev" type="button" data-bs-target="#@carouselId" data-bs-slide="prev" aria-label="Previous photo">
+                    <span class="carousel-control-prev-icon"></span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#@carouselId" data-bs-slide="next" aria-label="Next photo">
+                    <span class="carousel-control-next-icon"></span>
+                </button>
+            </div>
+        }
+        else
+        {
+            <a href="@detailsUrl">
+                <img src="@(Model.ImageUrls.FirstOrDefault() ?? "")" alt="@Model.Title" loading="lazy" />
+            </a>
+        }
+
+        @* ---------- Heart (wishlist) ---------- *@
+        @if (User.IsInRole(Roles.Guest))
+        {
+            <form asp-controller="Wishlist" asp-action="Toggle" method="post" class="stb-heart-form">
+                <input type="hidden" name="propertyId" value="@Model.Id" />
+                <input type="hidden" name="returnUrl" value="@returnUrl" />
+                <button type="submit" class="stb-heart @(Model.IsWishlisted ? "is-saved" : "")" title="@(Model.IsWishlisted ? "Remove from wishlist" : "Save to wishlist")">
+                    <i class="bi @(Model.IsWishlisted ? "bi-heart-fill" : "bi-heart")"></i>
+                </button>
+            </form>
+        }
+        else if (User.Identity?.IsAuthenticated != true)
+        {
+            <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="@returnUrl" class="stb-heart-form stb-heart" title="Log in to save">
+                <i class="bi bi-heart"></i>
+            </a>
+        }
+    </div>
+
+    <a href="@detailsUrl" class="text-decoration-none text-dark d-block mt-2">
+        <div class="d-flex justify-content-between gap-2">
+            <span class="fw-semibold text-truncate">@Model.City, South Africa</span>
+            <span class="small text-nowrap">
+                <i class="bi bi-star-fill"></i>
+                @(Model.ReviewCount > 0 ? Model.AverageRating.ToString("0.0") : "New")
+            </span>
+        </div>
+        <div class="text-muted small text-truncate">@Model.Title</div>
+        <div class="text-muted small">@Model.PropertyType &middot; @Model.Bedrooms bedroom(s) &middot; @Model.MaxGuests guests</div>
+        <div class="mt-1">
+            <span class="fw-semibold">R @Model.PricePerNight.ToString("N0")</span> <span class="small">night</span>
+            @if (Model.StayTotal.HasValue)
+            {
+                <span class="text-muted small"> &middot; <u>R @Model.StayTotal.Value.ToString("N0") total</u></span>
+            }
+        </div>
+    </a>
+</div>

@@ -1,0 +1,115 @@
+@using Staybnb.Models.Enums
+@model Staybnb.Models.ViewModels.Admin.HostRequestsViewModel
+@{
+    ViewData["Title"] = "Host Requests";
+
+    string currentFilter = Model.StatusFilter switch
+    {
+        null => "all",
+        ApplicationStatus.Approved => "approved",
+        ApplicationStatus.Rejected => "rejected",
+        _ => "pending"
+    };
+
+    var tabs = new (string Key, string Label, int Count)[]
+    {
+        ("pending", "Pending", Model.PendingCount),
+        ("approved", "Approved", Model.ApprovedCount),
+        ("rejected", "Rejected", Model.RejectedCount),
+        ("all", "All", Model.TotalCount)
+    };
+}
+
+
+<div class="my-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
+        <div>
+            <h1 class="h3 fw-bold mb-1">Host Requests</h1>
+            <p class="text-muted mb-0">Review new hosts and new property listings before they go live.</p>
+        </div>
+
+        <form method="get" asp-action="HostRequests" class="d-flex gap-2" role="search">
+            <input type="hidden" name="filter" value="@currentFilter" />
+            <input type="search" name="search" value="@Model.Search" class="form-control" placeholder="Search name, email, title, city" aria-label="Search" />
+            <button class="btn btn-outline-stb" type="submit"><i class="bi bi-search"></i></button>
+        </form>
+    </div>
+
+    <ul class="nav stb-tabs mb-3">
+        @foreach (var tab in tabs)
+        {
+            <li class="nav-item">
+                <a class="nav-link @(tab.Key == currentFilter ? "active" : "")"
+                   asp-action="HostRequests" asp-route-filter="@tab.Key" asp-route-search="@Model.Search">
+                    @tab.Label <span class="badge rounded-pill @(tab.Key == "pending" && tab.Count > 0 ? "text-bg-warning" : "text-bg-light")">@tab.Count</span>
+                </a>
+            </li>
+        }
+    </ul>
+
+    <div class="stb-card p-0 overflow-hidden">
+        @if (!Model.Applications.Any())
+        {
+            <div class="text-center text-muted py-5">
+                <i class="bi bi-inbox display-5"></i>
+                <p class="mt-2 mb-0">No applications to show.</p>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table align-middle mb-0 stb-table">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4">Applicant</th>
+                            <th>Property</th>
+                            <th>Type</th>
+                            <th>Applied</th>
+                            <th>Status</th>
+                            <th class="text-end pe-4">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var app in Model.Applications)
+                        {
+                            var cover = app.Property.Images.OrderByDescending(i => i.IsCover).FirstOrDefault();
+                            var initials = $"{app.Applicant.FirstName.FirstOrDefault()}{app.Applicant.LastName.FirstOrDefault()}".ToUpper();
+
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="stb-avatar">@initials</span>
+                                        <div>
+                                            <div class="fw-semibold">@app.Applicant.FullName</div>
+                                            <div class="small text-muted">@app.Applicant.Email</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        @if (cover != null)
+                                        {
+                                            <img src="@cover.ImageUrl" class="stb-thumb" alt="" />
+                                        }
+                                        <div>
+                                            <div class="fw-semibold">@app.Property.Title</div>
+                                            <div class="small text-muted">@app.Property.City &middot; @app.Property.Images.Count photo(s)</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="small">@(app.IsAdditionalProperty ? "Additional property" : "New host")</td>
+                                <td class="small">@app.AppliedAt.ToLocalTime().ToString("yyyy-MM-dd")</td>
+                                <td><span class="stb-badge stb-badge-@app.Status.ToString().ToLowerInvariant()">@app.Status</span></td>
+                                <td class="text-end pe-4">
+                                    <a asp-action="ReviewApplication" asp-route-id="@app.Id" class="btn btn-sm btn-outline-stb">
+                                        <i class="bi bi-eye"></i> @(app.Status == ApplicationStatus.Pending ? "Review" : "View")
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

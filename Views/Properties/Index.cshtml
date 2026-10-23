@@ -1,0 +1,161 @@
+@using Microsoft.AspNetCore.Routing
+@using Staybnb.Models.Enums
+@model Staybnb.Models.ViewModels.Guest.PropertySearchViewModel
+@{
+    ViewData["Title"] = "Find a place to stay";
+
+    var typeIcons = new Dictionary<PropertyType, string>
+    {
+        [PropertyType.Apartment] = "bi-building",
+        [PropertyType.House] = "bi-house",
+        [PropertyType.Cabin] = "bi-tree",
+        [PropertyType.Villa] = "bi-house-heart",
+        [PropertyType.Cottage] = "bi-house-door",
+        [PropertyType.Guesthouse] = "bi-houses",
+        [PropertyType.Room] = "bi-door-closed"
+    };
+
+    // Builds a gallery URL that keeps the current filters but changes one value
+    string FilterUrl(object changes)
+    {
+        var values = new RouteValueDictionary
+        {
+            ["City"] = Model.City,
+            ["Type"] = Model.Type,
+            ["Guests"] = Model.Guests,
+            ["CheckIn"] = Model.CheckIn?.ToString("yyyy-MM-dd"),
+            ["CheckOut"] = Model.CheckOut?.ToString("yyyy-MM-dd"),
+            ["MinPrice"] = Model.MinPrice,
+            ["MaxPrice"] = Model.MaxPrice,
+            ["Sort"] = Model.Sort == "recommended" ? null : Model.Sort,
+            ["Page"] = null   // changing a filter goes back to page 1
+        };
+        foreach (var change in new RouteValueDictionary(changes))
+            values[change.Key] = change.Value;
+        return Url.Action("Index", "Properties", values)!;
+    }
+}
+
+@* ---------- Property type bar (Airbnb-style icons) ---------- *@
+<div class="stb-type-bar border-bottom mb-3">
+    <a href="@FilterUrl(new { Type = (PropertyType?)null })" class="@(Model.Type == null ? "active" : "")">
+        <i class="bi bi-grid"></i>All
+    </a>
+    @foreach (var type in Enum.GetValues<PropertyType>())
+    {
+        <a href="@FilterUrl(new { Type = type })" class="@(Model.Type == type ? "active" : "")">
+            <i class="bi @typeIcons[type]"></i>@type
+        </a>
+    }
+</div>
+
+@* ---------- Filter row ---------- *@
+<form method="get" asp-action="Index" class="d-flex flex-wrap align-items-center gap-2 mb-3">
+    @if (Model.Type.HasValue)
+    {
+        <input type="hidden" name="Type" value="@Model.Type" />
+    }
+    @if (Model.CheckIn.HasValue)
+    {
+        <input type="hidden" name="CheckIn" value="@Model.CheckIn.Value.ToString("yyyy-MM-dd")" />
+        <input type="hidden" name="CheckOut" value="@Model.CheckOut!.Value.ToString("yyyy-MM-dd")" />
+    }
+
+    <select name="City" class="form-select form-select-sm w-auto rounded-pill" onchange="this.form.submit()" aria-label="City">
+        <option value="">All cities</option>
+        @foreach (var c in Model.Cities)
+        {
+            if (string.Equals(c, Model.City, StringComparison.OrdinalIgnoreCase))
+            {
+                <option value="@c" selected>@c</option>
+            }
+            else
+            {
+                <option value="@c">@c</option>
+            }
+        }
+        @if (!string.IsNullOrWhiteSpace(Model.City) && !Model.Cities.Contains(Model.City, StringComparer.OrdinalIgnoreCase))
+        {
+            <option value="@Model.City" selected>"@Model.City"</option>
+        }
+    </select>
+
+    <input type="number" name="Guests" value="@Model.Guests" min="1" max="50" placeholder="Guests" class="form-control form-control-sm rounded-pill" style="width:100px" aria-label="Guests" />
+    <input type="number" name="MinPrice" value="@Model.MinPrice" min="0" step="50" placeholder="Min R" class="form-control form-control-sm rounded-pill" style="width:110px" aria-label="Minimum price" />
+    <input type="number" name="MaxPrice" value="@Model.MaxPrice" min="0" step="50" placeholder="Max R" class="form-control form-control-sm rounded-pill" style="width:110px" aria-label="Maximum price" />
+
+    <select name="Sort" class="form-select form-select-sm w-auto rounded-pill" onchange="this.form.submit()" aria-label="Sort">
+        @foreach (var (value, label) in new[] { ("recommended", "Recommended"), ("price_asc", "Price: low to high"), ("price_desc", "Price: high to low"), ("rating", "Top rated"), ("newest", "Newest") })
+        {
+            if (Model.Sort == value)
+            {
+                <option value="@value" selected>@label</option>
+            }
+            else
+            {
+                <option value="@value">@label</option>
+            }
+        }
+    </select>
+
+    <button type="submit" class="btn btn-sm btn-outline-stb rounded-pill"><i class="bi bi-sliders"></i> Apply</button>
+    @if (Model.HasFilters)
+    {
+        <a asp-action="Index" class="btn btn-sm btn-link text-dark fw-semibold">Clear all</a>
+    }
+</form>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h6 fw-semibold mb-0">
+        @Model.TotalResults stay(s)
+        @if (!string.IsNullOrWhiteSpace(Model.City))
+        {
+            <span>in @Model.City</span>
+        }
+        @if (Model.CheckIn.HasValue)
+        {
+            <span class="text-muted fw-normal">&middot; @Model.CheckIn.Value.ToString("dd MMM") - @Model.CheckOut!.Value.ToString("dd MMM yyyy")</span>
+        }
+    </h1>
+</div>
+
+@if (!Model.Results.Any())
+{
+    <div class="text-center py-5">
+        <i class="bi bi-search display-4 text-muted"></i>
+        <h2 class="h5 fw-semibold mt-3">No exact matches</h2>
+        <p class="text-muted">Try changing or removing some of your filters or dates.</p>
+        <a asp-action="Index" class="btn btn-outline-stb">Remove all filters</a>
+    </div>
+}
+else
+{
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-4 g-4">
+        @foreach (var card in Model.Results)
+        {
+            <div class="col">
+                <partial name="_PropertyCard" model="card" />
+            </div>
+        }
+    </div>
+
+    @if (Model.TotalPages > 1)
+    {
+        <nav class="mt-5" aria-label="Results pages">
+            <ul class="pagination justify-content-center">
+                <li class="page-item @(Model.Page <= 1 ? "disabled" : "")">
+                    <a class="page-link text-dark" href="@FilterUrl(new { Page = Model.Page - 1 })">&laquo;</a>
+                </li>
+                @for (var p = 1; p <= Model.TotalPages; p++)
+                {
+                    <li class="page-item @(p == Model.Page ? "active" : "")">
+                        <a class="page-link @(p == Model.Page ? "bg-dark border-dark" : "text-dark")" href="@FilterUrl(new { Page = p })">@p</a>
+                    </li>
+                }
+                <li class="page-item @(Model.Page >= Model.TotalPages ? "disabled" : "")">
+                    <a class="page-link text-dark" href="@FilterUrl(new { Page = Model.Page + 1 })">&raquo;</a>
+                </li>
+            </ul>
+        </nav>
+    }
+}

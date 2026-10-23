@@ -1,0 +1,163 @@
+@using Microsoft.AspNetCore.Identity
+@using Staybnb.Models.Common
+@using Staybnb.Models.Entities
+@inject UserManager<ApplicationUser> UserManager
+@model Staybnb.Models.ViewModels.Shared.InboxViewModel
+@{
+    ViewData["Title"] = "Messages";
+    var me = UserManager.GetUserId(User);
+    var active = Model.Active;
+}
+
+<div class="@(User.IsInRole("Guest") ? "py-4" : "")">
+    <div class="stb-inbox">
+        @* ================= Conversation list ================= *@
+        <aside class="stb-inbox-list @(active != null ? "d-none d-md-flex" : "d-flex")">
+            <div class="p-3 border-bottom">
+                <h1 class="h5 fw-bold mb-2">Messages</h1>
+                <form method="get" asp-action="Index">
+                    <input type="search" name="search" value="@Model.Search" class="form-control form-control-sm rounded-pill" placeholder="Search messages" aria-label="Search messages" />
+                </form>
+            </div>
+            <div class="flex-grow-1 overflow-auto">
+                @if (!Model.Conversations.Any())
+                {
+                    <div class="text-center text-muted p-4 small">
+                        <i class="bi bi-chat-square-text fs-2 d-block mb-2"></i>
+                        No messages yet. Use "Message Host" on a listing or booking to start a conversation.
+                    </div>
+                }
+                @foreach (var c in Model.Conversations)
+                {
+                    var isActive = active?.OtherUser.Id == c.OtherUserId;
+                    <a asp-action="Conversation" asp-route-userId="@c.OtherUserId"
+                       class="stb-convo @(isActive ? "active" : "") @(c.UnreadCount > 0 ? "unread" : "")">
+                        <span class="stb-avatar">@c.OtherUserInitials</span>
+                        <div class="flex-grow-1 min-w-0">
+                            <div class="d-flex justify-content-between gap-2">
+                                <span class="fw-semibold text-truncate">@c.OtherUserName</span>
+                                <span class="small text-muted text-nowrap">@DisplayHelpers.TimeAgo(c.LastMessageAt)</span>
+                            </div>
+                            @if (c.PropertyTitle != null)
+                            {
+                                <div class="small text-muted text-truncate">@c.PropertyTitle</div>
+                            }
+                            <div class="small text-truncate @(c.UnreadCount > 0 ? "fw-semibold text-dark" : "text-muted")">
+                                @(c.LastMessageFromMe ? "You: " : "")@c.LastMessage
+                            </div>
+                        </div>
+                        @if (c.UnreadCount > 0)
+                        {
+                            <span class="badge rounded-pill bg-danger align-self-center">@c.UnreadCount</span>
+                        }
+                    </a>
+                }
+            </div>
+        </aside>
+
+        @* ================= Open conversation ================= *@
+        <section class="stb-inbox-thread @(active == null ? "d-none d-md-flex" : "d-flex")">
+            @if (active == null)
+            {
+                <div class="m-auto text-center text-muted p-4">
+                    <i class="bi bi-envelope-open fs-1 d-block mb-2"></i>
+                    Select a conversation to read and reply.
+                </div>
+            }
+            else
+            {
+                <header class="d-flex align-items-center gap-3 p-3 border-bottom">
+                    <a asp-action="Index" class="d-md-none text-dark fs-5" aria-label="Back to inbox"><i class="bi bi-chevron-left"></i></a>
+                    <span class="stb-avatar">@DisplayHelpers.Initials(active.OtherUser)</span>
+                    <div class="flex-grow-1">
+                        <div class="fw-semibold">@active.OtherUser.FullName</div>
+                        <div class="small text-muted">@active.OtherUserRole</div>
+                    </div>
+                    @if (active.Property != null)
+                    {
+                        <a asp-controller="Properties" asp-action="View" asp-route-id="@active.Property.Id"
+                           class="d-none d-sm-flex align-items-center gap-2 text-decoration-none text-dark small border rounded-3 p-1 pe-2">
+                            @if (active.PropertyCoverUrl != null)
+                            {
+                                <img src="@active.PropertyCoverUrl" alt="" class="rounded-2" style="width:40px;height:32px;object-fit:cover" />
+                            }
+                            <span class="text-truncate" style="max-width:160px">@active.Property.Title</span>
+                        </a>
+                    }
+                </header>
+
+                <div class="stb-messages flex-grow-1 overflow-auto p-3" id="messageList">
+                    @if (!active.Messages.Any())
+                    {
+                        <div class="text-center text-muted small my-4">
+                            Start your conversation with @active.OtherUser.FirstName.
+                            @if (active.Property != null)
+                            {
+                                <span>It will be linked to "@active.Property.Title".</span>
+                            }
+                        </div>
+                    }
+                    @{ DateTime? lastDay = null; }
+                    @foreach (var m in active.Messages)
+                    {
+                        var mine = m.SenderId == me;
+                        var day = m.Timestamp.ToLocalTime().Date;
+                        if (lastDay != day)
+                        {
+                            lastDay = day;
+                            <div class="text-center small text-muted my-3">@day.ToString("dddd, dd MMMM yyyy")</div>
+                        }
+                        <div class="d-flex mb-2 @(mine ? "justify-content-end" : "justify-content-start")">
+                            <div class="stb-bubble @(mine ? "mine" : "theirs")">
+                                @if (m.Property != null && m.Property.Id != active.Property?.Id)
+                                {
+                                    <div class="small opacity-75 mb-1"><i class="bi bi-house"></i> @m.Property.Title</div>
+                                }
+                                <div style="white-space: pre-line">@m.Content</div>
+                                <div class="stb-bubble-meta">
+                                    @m.Timestamp.ToLocalTime().ToString("HH:mm")
+                                    @if (mine)
+                                    {
+                                        <i class="bi @(m.IsRead ? "bi-check2-all" : "bi-check2")" title="@(m.IsRead ? "Read" : "Sent")"></i>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <form asp-action="Send" method="post" class="p-3 border-top d-flex gap-2 align-items-end" id="replyForm">
+                    <input type="hidden" name="ReceiverId" value="@active.OtherUser.Id" />
+                    @if (active.Property != null)
+                    {
+                        <input type="hidden" name="PropertyId" value="@active.Property.Id" />
+                    }
+                    <textarea name="Content" class="form-control" rows="2" maxlength="2000" required
+                              placeholder="Write a message... (Ctrl + Enter to send)" aria-label="Message"></textarea>
+                    <button type="submit" class="btn btn-stb" aria-label="Send"><i class="bi bi-send-fill"></i></button>
+                </form>
+            }
+        </section>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            // Start at the newest message
+            const list = document.getElementById("messageList");
+            if (list) list.scrollTop = list.scrollHeight;
+
+            // Ctrl/Cmd + Enter sends the reply
+            const form = document.getElementById("replyForm");
+            if (form) {
+                const box = form.querySelector("textarea");
+                box.focus();
+                box.addEventListener("keydown", e => {
+                    if (e.key === "Enter" && (e.ctrlKey || e.metaKey) && box.value.trim()) form.submit();
+                });
+                form.addEventListener("submit", () => form.querySelector("button").disabled = true);
+            }
+        })();
+    </script>
+}

@@ -1,0 +1,125 @@
+@using Staybnb.Models.Common
+@model Staybnb.Models.ViewModels.Shared.NotificationCenterViewModel
+@{
+    ViewData["Title"] = "Notifications";
+    var selected = Model.Selected;
+    var todayUtc = DateTime.Today.ToUniversalTime();
+    var tabs = new (string Key, string Label, int Count, string Css)[]
+    {
+        ("all", "All", Model.AllCount, "text-bg-light"),
+        ("unread", "Unread", Model.UnreadCount, "text-bg-danger"),
+        ("read", "Read", Model.ReadCount, "text-bg-success"),
+        ("today", "Today", Model.TodayCount, "text-bg-warning")
+    };
+}
+
+<div class="@(User.IsInRole("Guest") ? "py-4" : "")">
+    <div class="stb-card mb-3">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <h1 class="h5 fw-bold mb-0">
+                Notifications
+                @if (Model.UnreadCount > 0)
+                {
+                    <span class="badge rounded-pill bg-danger align-middle">@Model.UnreadCount new</span>
+                }
+            </h1>
+            @if (Model.UnreadCount > 0)
+            {
+                <form asp-action="MarkAllRead" method="post">
+                    <input type="hidden" name="filter" value="@Model.Filter" />
+                    <button type="submit" class="btn btn-sm btn-outline-stb"><i class="bi bi-check2-all"></i> Mark all read</button>
+                </form>
+            }
+        </div>
+        <div class="d-flex flex-wrap gap-2 mt-3">
+            @foreach (var tab in tabs)
+            {
+                <a asp-action="Index" asp-route-filter="@tab.Key" class="stb-filter-chip @(Model.Filter == tab.Key ? "active" : "")">
+                    <span class="fw-bold">@tab.Count</span> <span class="small text-uppercase">@tab.Label</span>
+                </a>
+            }
+        </div>
+    </div>
+
+    <div class="row g-3">
+        @* ================= List ================= *@
+        <div class="col-lg-5">
+            <div class="stb-card p-0 overflow-hidden">
+                @if (!Model.Notifications.Any())
+                {
+                    <div class="text-center text-muted py-5 small">
+                        <i class="bi bi-bell-slash fs-2 d-block mb-2"></i>
+                        Nothing here.
+                    </div>
+                }
+                @foreach (var n in Model.Notifications)
+                {
+                    var (icon, css) = DisplayHelpers.NotificationIcon(n.Type);
+                    var isSelected = selected?.Id == n.Id;
+                    <a asp-action="Index" asp-route-filter="@Model.Filter" asp-route-selectedId="@n.Id"
+                       class="stb-notification @(n.IsRead ? "" : "unread") @(isSelected ? "selected" : "")">
+                        <i class="bi @icon @css fs-5"></i>
+                        <div class="flex-grow-1 min-w-0">
+                            <div class="d-flex justify-content-between gap-2">
+                                <span class="fw-semibold text-truncate">@n.Title</span>
+                                <span class="small text-muted text-nowrap">@DisplayHelpers.TimeAgo(n.CreatedAt)</span>
+                            </div>
+                            <div class="small text-muted text-truncate">@n.Message</div>
+                        </div>
+                        @if (!n.IsRead)
+                        {
+                            <span class="stb-unread-dot" title="Unread"></span>
+                        }
+                    </a>
+                }
+            </div>
+        </div>
+
+        @* ================= Detail ================= *@
+        <div class="col-lg-7">
+            <div class="stb-card h-100">
+                @if (selected == null)
+                {
+                    <div class="text-center text-muted py-5">
+                        <i class="bi bi-bell fs-1 d-block mb-2"></i>
+                        Select a notification to see the details. Opening it marks it as read.
+                    </div>
+                }
+                else
+                {
+                    var (icon, css) = DisplayHelpers.NotificationIcon(selected.Type);
+                    <div class="d-flex justify-content-between align-items-start gap-2 border-bottom pb-3 mb-3">
+                        <div class="d-flex gap-3">
+                            <i class="bi @icon @css fs-3"></i>
+                            <div>
+                                <h2 class="h5 fw-semibold mb-1">@selected.Title</h2>
+                                <div class="small text-muted">
+                                    @selected.CreatedAt.ToLocalTime().ToString("MMMM dd, yyyy h:mm tt") &middot; @DisplayHelpers.TimeAgo(selected.CreatedAt)
+                                </div>
+                            </div>
+                        </div>
+                        <span class="stb-badge @(selected.IsRead ? "stb-badge-approved" : "stb-badge-pending")">@(selected.IsRead ? "READ" : "UNREAD")</span>
+                    </div>
+
+                    <p class="mb-3">@selected.Message</p>
+                    <div class="small text-muted mb-4">Type: @selected.Type</div>
+
+                    <div class="d-flex flex-wrap gap-2">
+                        @if (!string.IsNullOrEmpty(selected.LinkUrl))
+                        {
+                            <a asp-action="Open" asp-route-id="@selected.Id" class="btn btn-stb btn-sm"><i class="bi bi-box-arrow-up-right"></i> Take Action</a>
+                        }
+                        <form asp-action="MarkUnread" asp-route-id="@selected.Id" method="post">
+                            <input type="hidden" name="filter" value="@Model.Filter" />
+                            <button type="submit" class="btn btn-outline-secondary btn-sm"><i class="bi bi-envelope"></i> Mark as unread</button>
+                        </form>
+                        <form asp-action="Delete" asp-route-id="@selected.Id" method="post" onsubmit="return confirm('Delete this notification?');">
+                            <input type="hidden" name="filter" value="@Model.Filter" />
+                            <button type="submit" class="btn btn-danger btn-sm"><i class="bi bi-trash"></i> Delete</button>
+                        </form>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

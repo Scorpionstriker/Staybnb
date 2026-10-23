@@ -1,0 +1,83 @@
+@model Staybnb.Models.ViewModels.Host.HostEarningsViewModel
+@{
+    ViewData["Title"] = "Earnings";
+    var maxMonth = Model.Monthly.Any() ? Model.Monthly.Max(m => m.Amount) : 0;
+}
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="stb-stat">
+            <span class="stb-stat-icon stb-icon-green"><i class="bi bi-cash-stack"></i></span>
+            <div class="stb-stat-value">R @Model.TotalEarnings.ToString("N2")</div>
+            <div class="stb-stat-label">Total earnings</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stb-stat">
+            <span class="stb-stat-icon stb-icon-blue"><i class="bi bi-calendar-month"></i></span>
+            <div class="stb-stat-value">R @Model.EarningsThisMonth.ToString("N2")</div>
+            <div class="stb-stat-label">Paid this month</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stb-stat">
+            <span class="stb-stat-icon stb-icon-orange"><i class="bi bi-hourglass-top"></i></span>
+            <div class="stb-stat-value">R @Model.ExpectedUpcoming.ToString("N2")</div>
+            <div class="stb-stat-label">From upcoming stays</div>
+        </div>
+    </div>
+</div>
+
+<p class="small text-muted">Earnings = what guests paid minus Staybnb's service fee (nightly price &times; nights + cleaning fee).</p>
+
+<div class="row g-4">
+    <div class="col-lg-5">
+        <div class="stb-card h-100">
+            <h2 class="h6 fw-bold mb-3">By month (check-in date)</h2>
+            @if (!Model.Monthly.Any())
+            {
+                <p class="text-muted small mb-0">No earnings yet.</p>
+            }
+            @foreach (var m in Model.Monthly)
+            {
+                var width = maxMonth > 0 ? (int)(m.Amount / maxMonth * 100) : 0;
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between small">
+                        <span class="fw-semibold">@m.Label</span>
+                        <span>R @m.Amount.ToString("N0") &middot; @m.Bookings booking(s)</span>
+                    </div>
+                    <div class="bg-light rounded-pill mt-1"><div class="stb-bar" style="width:@(Math.Max(width, 2))%"></div></div>
+                </div>
+            }
+        </div>
+    </div>
+    <div class="col-lg-7">
+        <div class="stb-card h-100">
+            <h2 class="h6 fw-bold mb-3">Paid bookings</h2>
+            @if (!Model.PaidBookings.Any())
+            {
+                <p class="text-muted small mb-0">Approved bookings appear here.</p>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle stb-table mb-0">
+                        <thead><tr><th>Guest</th><th>Property</th><th>Stay</th><th>Reference</th><th class="text-end">You earn</th></tr></thead>
+                        <tbody>
+                            @foreach (var b in Model.PaidBookings)
+                            {
+                                <tr>
+                                    <td class="small">@b.Guest.FullName</td>
+                                    <td class="small">@b.Property.Title</td>
+                                    <td class="small">@b.CheckInDate.ToString("dd MMM yy") (@b.Nights n)</td>
+                                    <td class="small text-muted">@b.Payment?.Reference</td>
+                                    <td class="text-end fw-semibold small">R @((b.TotalPrice - b.ServiceFee).ToString("N2"))</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>

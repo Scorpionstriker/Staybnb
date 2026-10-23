@@ -1,0 +1,163 @@
+@using Staybnb.Models.Common
+@using Staybnb.Models.Enums
+@model Staybnb.Models.ViewModels.Admin.AdminDashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard Overview";
+}
+
+@* ---------- Stat tiles (as in the brief's screenshot) ---------- *@
+<div class="row g-3 mb-3">
+    <div class="col-6 col-xl-3">
+        <div class="stb-stat">
+            <div class="stb-stat-label">Total Users</div>
+            <div class="stb-stat-value">@Model.TotalUsers</div>
+            <div class="small text-success">@Model.NewUsersThisMonth new this month</div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <a asp-action="HostRequests" class="text-decoration-none text-dark">
+            <div class="stb-stat">
+                <div class="stb-stat-label">Pending Host Apps</div>
+                <div class="stb-stat-value @(Model.PendingHostApplications > 0 ? "text-warning" : "")">@Model.PendingHostApplications</div>
+                <div class="small @(Model.PendingHostApplications > 0 ? "text-warning" : "text-success")">
+                    @(Model.PendingHostApplications > 0 ? "Require review" : "All reviewed")
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="stb-stat">
+            <div class="stb-stat-label">Active Properties</div>
+            <div class="stb-stat-value">@Model.ActiveProperties</div>
+            <div class="small text-success">of @Model.TotalProperties listings</div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="stb-stat">
+            <div class="stb-stat-label">Platform Revenue</div>
+            <div class="stb-stat-value">R @Model.PlatformRevenue.ToString("N0")</div>
+            <div class="small text-success">Service fees &middot; R @Model.GrossBookingValue.ToString("N0") booked</div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="stb-stat">
+            <div class="stb-stat-label">Total Bookings</div>
+            <div class="stb-stat-value">@Model.TotalBookings</div>
+            <div class="small text-success">@Model.PendingBookings pending</div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="stb-stat">
+            <div class="stb-stat-label">Approved Hosts</div>
+            <div class="stb-stat-value">@Model.ApprovedHosts</div>
+            <div class="small text-success">Active hosts</div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="stb-stat">
+            <div class="stb-stat-label">Guests</div>
+            <div class="stb-stat-value">@Model.GuestCount</div>
+            <div class="small text-muted">Guest accounts</div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="stb-stat">
+            <div class="stb-stat-label">Administrators</div>
+            <div class="stb-stat-value">@Model.AdminCount</div>
+            <div class="small text-muted">incl. SuperAdmin</div>
+        </div>
+    </div>
+</div>
+
+@* ---------- Recent activity ---------- *@
+<div class="stb-card mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="h6 fw-bold mb-0">Recent Activity</h2>
+        <a asp-action="ActivityLogs" class="small fw-semibold text-dark">View all logs</a>
+    </div>
+    <div class="table-responsive">
+        <table class="table align-middle stb-table mb-0">
+            <thead><tr><th>User</th><th>Action</th><th>Date</th><th>Type</th></tr></thead>
+            <tbody>
+                @foreach (var log in Model.RecentActivity)
+                {
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="stb-avatar" style="width:32px;height:32px;font-size:.75rem">@DisplayHelpers.Initials(log.User)</span>
+                                <div class="small">
+                                    <div class="fw-semibold">@(log.User?.FullName ?? "System")</div>
+                                    <div class="text-muted">@log.User?.Email</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="small">@log.Action</td>
+                        <td class="small text-nowrap">@log.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                        <td><span class="badge text-bg-light">@log.ActivityType</span></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="row g-4">
+    @* ---------- Recent host applications ---------- *@
+    <div class="col-xl-6">
+        <div class="stb-card h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="h6 fw-bold mb-0">Recent Host Applications</h2>
+                <a asp-action="HostRequests" asp-route-filter="all" class="small fw-semibold text-dark">View all</a>
+            </div>
+            <table class="table align-middle stb-table mb-0">
+                <thead><tr><th>Applicant</th><th>Date</th><th>Status</th><th></th></tr></thead>
+                <tbody>
+                    @foreach (var a in Model.RecentApplications)
+                    {
+                        <tr>
+                            <td class="small">
+                                <div class="fw-semibold">@a.Applicant.FullName</div>
+                                <div class="text-muted text-truncate" style="max-width:200px">@a.Property.Title</div>
+                            </td>
+                            <td class="small text-nowrap">@a.AppliedAt.ToLocalTime().ToString("yyyy-MM-dd")</td>
+                            <td><span class="stb-badge stb-badge-@a.Status.ToString().ToLowerInvariant()">@a.Status</span></td>
+                            <td><a asp-action="ReviewApplication" asp-route-id="@a.Id" class="text-dark" title="Review"><i class="bi bi-eye"></i></a></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    @* ---------- Recent bookings ---------- *@
+    <div class="col-xl-6">
+        <div class="stb-card h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="h6 fw-bold mb-0">Recent Bookings</h2>
+                <a asp-action="Bookings" class="small fw-semibold text-dark">View all</a>
+            </div>
+            <table class="table align-middle stb-table mb-0">
+                <thead><tr><th>Guest</th><th>Dates</th><th>Status</th><th>Payment</th></tr></thead>
+                <tbody>
+                    @foreach (var b in Model.RecentBookings)
+                    {
+                        <tr>
+                            <td class="small">
+                                <div class="fw-semibold">@b.Guest.FullName</div>
+                                <div class="text-muted text-truncate" style="max-width:200px">@b.Property.Title</div>
+                            </td>
+                            <td class="small text-nowrap">@b.CheckInDate.ToString("dd MMM")<br /><span class="text-muted">to @b.CheckOutDate.ToString("dd MMM")</span></td>
+                            <td><span class="stb-badge stb-badge-@b.Status.ToString().ToLowerInvariant()">@b.Status</span></td>
+                            <td>
+                                @if (b.Payment != null)
+                                {
+                                    <span class="stb-badge stb-badge-@b.Payment.Status.ToString().ToLowerInvariant()">@b.Payment.Status</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,247 @@
+@model Staybnb.Models.ViewModels.Guest.PropertyDetailsViewModel
+@{
+    var p = Model.Property;
+    ViewData["Title"] = p.Title;
+    var images = Model.Images.Take(5).ToList();
+    var hostInitials = $"{Model.Host.FirstName.FirstOrDefault()}{Model.Host.LastName.FirstOrDefault()}".ToUpper();
+    var currentUrl = Context.Request.Path + Context.Request.QueryString;
+}
+
+<div class="pt-4">
+    @if (!p.IsActive)
+    {
+        <div class="alert alert-warning"><i class="bi bi-eye-slash"></i> This listing is not live - only you (the Host) and administrators can see this preview.</div>
+    }
+
+    @* ---------- Title row ---------- *@
+    <div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-3">
+        <div>
+            <h1 class="h3 fw-bold mb-1">@p.Title</h1>
+            <div class="small">
+                <i class="bi bi-geo-alt"></i> @p.City, South Africa
+                &middot; <i class="bi bi-star-fill"></i>
+                @(Model.Reviews.Any() ? $"{Model.AverageRating:0.00} ({Model.Reviews.Count} review(s))" : "New - no reviews yet")
+            </div>
+        </div>
+        @if (Model.IsGuest)
+        {
+            <form asp-controller="Wishlist" asp-action="Toggle" method="post">
+                <input type="hidden" name="propertyId" value="@p.Id" />
+                <input type="hidden" name="returnUrl" value="@currentUrl" />
+                <button type="submit" class="btn btn-link text-dark fw-semibold text-decoration-underline">
+                    <i class="bi @(Model.IsWishlisted ? "bi-heart-fill text-stb" : "bi-heart")"></i> @(Model.IsWishlisted ? "Saved" : "Save")
+                </button>
+            </form>
+        }
+    </div>
+
+    @* ---------- Photo gallery ---------- *@
+    <div class="stb-detail-gallery count-@Math.Min(images.Count, 5) mb-4">
+        @for (var i = 0; i < images.Count; i++)
+        {
+            <a href="@images[i].ImageUrl" target="_blank" class="@(i == 0 ? "stb-gallery-main" : "")">
+                <img src="@images[i].ImageUrl" alt="@p.Title photo @(i + 1)" />
+            </a>
+        }
+    </div>
+
+    <div class="row g-5">
+        @* ================= Left: details ================= *@
+        <div class="col-lg-7">
+            <div class="d-flex justify-content-between align-items-center pb-4 border-bottom">
+                <div>
+                    <h2 class="h5 fw-semibold mb-1">@p.PropertyType in @p.City hosted by @Model.Host.FirstName</h2>
+                    <div class="text-muted">
+                        @p.MaxGuests guest(s) &middot; @p.Bedrooms bedroom(s) &middot; @p.Beds bed(s) &middot; @p.Bathrooms bath(s)
+                    </div>
+                </div>
+                <span class="stb-avatar" style="width:56px;height:56px;font-size:1.1rem">@hostInitials</span>
+            </div>
+
+            <div class="py-4 border-bottom">
+                <div class="d-flex gap-3 mb-3">
+                    <i class="bi bi-patch-check fs-4"></i>
+                    <div><div class="fw-semibold">Verified Host</div><div class="small text-muted">@Model.Host.FirstName's listings are reviewed by Staybnb before going live.</div></div>
+                </div>
+                <div class="d-flex gap-3 mb-3">
+                    <i class="bi bi-person-vcard fs-4"></i>
+                    <div><div class="fw-semibold">Online check-in</div><div class="small text-muted">Complete check-in and upload your ID before you arrive.</div></div>
+                </div>
+                <div class="d-flex gap-3">
+                    <i class="bi bi-calendar-x fs-4"></i>
+                    <div><div class="fw-semibold">Free cancellation before check-in</div><div class="small text-muted">Cancel any time before your stay starts for a full refund.</div></div>
+                </div>
+            </div>
+
+            <div class="py-4 border-bottom">
+                <h3 class="h5 fw-semibold mb-3">About this place</h3>
+                <p class="mb-0" style="white-space: pre-line">@p.Description</p>
+            </div>
+
+            <div class="py-4 border-bottom">
+                <h3 class="h5 fw-semibold mb-3">What this place offers</h3>
+                @if (Model.Amenities.Any())
+                {
+                    <div class="row g-3">
+                        @foreach (var a in Model.Amenities)
+                        {
+                            <div class="col-6"><i class="bi @a.IconClass fs-5 me-3"></i>@a.Name</div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted mb-0">The Host hasn't listed any amenities.</p>
+                }
+            </div>
+
+            @if (Model.BookedRanges.Any())
+            {
+                <div class="py-4 border-bottom">
+                    <h3 class="h5 fw-semibold mb-2">Already booked</h3>
+                    <p class="small text-muted">These dates are unavailable:</p>
+                    <div class="d-flex flex-wrap gap-2">
+                        @foreach (var r in Model.BookedRanges)
+                        {
+                            <span class="badge rounded-pill text-bg-light border">@r.CheckIn.ToString("dd MMM") - @r.CheckOut.ToString("dd MMM yyyy")</span>
+                        }
+                    </div>
+                </div>
+            }
+
+            @* ---------- Reviews ---------- *@
+            <div class="py-4 border-bottom">
+                <h3 class="h5 fw-semibold mb-3">
+                    <i class="bi bi-star-fill"></i>
+                    @(Model.Reviews.Any() ? $"{Model.AverageRating:0.00} · {Model.Reviews.Count} review(s)" : "No reviews yet")
+                </h3>
+                <div class="row g-4">
+                    @foreach (var r in Model.Reviews.Take(6))
+                    {
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <span class="stb-avatar">@($"{r.Reviewer.FirstName.FirstOrDefault()}{r.Reviewer.LastName.FirstOrDefault()}".ToUpper())</span>
+                                <div>
+                                    <div class="fw-semibold">@r.Reviewer.FirstName</div>
+                                    <div class="small text-muted">@r.CreatedAt.ToLocalTime().ToString("MMMM yyyy")</div>
+                                </div>
+                            </div>
+                            <div class="stb-stars small mb-1">
+                                @for (var s = 1; s <= 5; s++)
+                                {
+                                    <i class="bi @(s <= r.Rating ? "bi-star-fill" : "bi-star")"></i>
+                                }
+                            </div>
+                            <p class="small mb-0">@r.Comment</p>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            @* ---------- Host ---------- *@
+            <div class="py-4">
+                <h3 class="h5 fw-semibold mb-3">Meet your Host</h3>
+                <div class="stb-card d-flex align-items-center gap-3">
+                    <span class="stb-avatar" style="width:64px;height:64px;font-size:1.3rem">@hostInitials</span>
+                    <div class="flex-grow-1">
+                        <div class="fw-semibold fs-5">@Model.Host.FirstName</div>
+                        <div class="small text-muted">
+                            Hosting since @Model.Host.CreatedAt.ToLocalTime().ToString("MMMM yyyy")
+                            &middot; @Model.HostListingCount listing(s) &middot; @Model.HostReviewCount review(s)
+                        </div>
+                    </div>
+                    @if (Model.IsAuthenticated && !Model.IsOwner)
+                    {
+                        <a asp-controller="Messages" asp-action="Conversation" asp-route-userId="@p.HostId" asp-route-propertyId="@p.Id"
+                           class="btn btn-outline-stb btn-sm">Message Host</a>
+                    }
+                </div>
+            </div>
+        </div>
+
+        @* ================= Right: booking box ================= *@
+        <div class="col-lg-5">
+            <div class="stb-booking-box" id="bookingBox"
+                 data-property-id="@p.Id"
+                 data-price="@p.PricePerNight.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                 data-max-guests="@p.MaxGuests">
+                <div class="d-flex justify-content-between align-items-baseline mb-3">
+                    <div><span class="fs-4 fw-bold">R @p.PricePerNight.ToString("N0")</span> <span>/ night</span></div>
+                    <span class="small"><i class="bi bi-star-fill"></i> @(Model.Reviews.Any() ? Model.AverageRating.ToString("0.0") : "New")</span>
+                </div>
+
+                <form asp-controller="Bookings" asp-action="Confirm" method="get" id="bookingForm">
+                    <input type="hidden" name="propertyId" value="@p.Id" />
+
+                    <div class="stb-date-grid mb-3">
+                        <div class="row g-0">
+                            <div class="col-6 stb-date-cell border-end">
+                                <label for="checkIn">Check-in</label>
+                                <input type="date" id="checkIn" name="checkIn" value="@Model.CheckIn.ToString("yyyy-MM-dd")" min="@DateTime.Today.ToString("yyyy-MM-dd")" required />
+                            </div>
+                            <div class="col-6 stb-date-cell">
+                                <label for="checkOut">Checkout</label>
+                                <input type="date" id="checkOut" name="checkOut" value="@Model.CheckOut.ToString("yyyy-MM-dd")" min="@Model.CheckIn.AddDays(1).ToString("yyyy-MM-dd")" required />
+                            </div>
+                        </div>
+                        <div class="stb-date-cell border-top d-flex justify-content-between align-items-center">
+                            <div>
+                                <label>Guests</label>
+                                <span id="guestLabel">@Model.Guests guest(s)</span>
+                            </div>
+                            <div class="stb-counter d-flex align-items-center gap-2">
+                                <button type="button" id="guestMinus" aria-label="Fewer guests">&minus;</button>
+                                <span id="guestCount" class="fw-semibold">@Model.Guests</span>
+                                <button type="button" id="guestPlus" aria-label="More guests">+</button>
+                            </div>
+                            <input type="hidden" name="guests" id="guests" value="@Model.Guests" />
+                        </div>
+                    </div>
+
+                    @if (Model.IsOwner)
+                    {
+                        <div class="alert alert-light border small mb-0">This is your listing - you can't book it yourself.</div>
+                    }
+                    else if (Model.IsAuthenticated && !Model.IsGuest)
+                    {
+                        <div class="alert alert-light border small mb-0">
+                            Only Guest accounts can book stays. (In Staybnb a user is either a Guest or a Host.)
+                        </div>
+                    }
+                    else
+                    {
+                        <button type="submit" class="btn btn-stb btn-lg w-100" id="reserveButton">Reserve</button>
+                        <p class="text-center small text-muted mt-2 mb-0">You won't be charged until the Host accepts</p>
+                    }
+
+                    <div id="quoteError" class="alert alert-danger small mt-3 d-none"></div>
+
+                    @* Price breakdown - updated live by booking.js using /api/properties/{id}/quote *@
+                    <div id="priceBreakdown" class="mt-3">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-decoration-underline">R <span data-q="pricePerNight">@Model.InitialPrice.PricePerNight.ToString("N2")</span> x <span data-q="nights">@Model.InitialPrice.Nights</span> night(s)</span>
+                            <span>R <span data-q="subtotal">@Model.InitialPrice.Subtotal.ToString("N2")</span></span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-decoration-underline">Cleaning fee</span>
+                            <span>R <span data-q="cleaningFee">@Model.InitialPrice.CleaningFee.ToString("N2")</span></span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-decoration-underline">Service fee (@((Model.ServiceFeePercentage * 100).ToString("0"))%)</span>
+                            <span>R <span data-q="serviceFee">@Model.InitialPrice.ServiceFee.ToString("N2")</span></span>
+                        </div>
+                        <hr />
+                        <div class="d-flex justify-content-between fw-bold">
+                            <span>Total</span>
+                            <span>R <span data-q="total">@Model.InitialPrice.Total.ToString("N2")</span></span>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/booking.js" asp-append-version="true"></script>
+}

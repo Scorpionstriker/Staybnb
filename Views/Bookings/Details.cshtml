@@ -1,0 +1,222 @@
+@using Staybnb.Models.Enums
+@model Staybnb.Models.ViewModels.Guest.BookingDetailsViewModel
+@{
+    var b = Model.Booking;
+    var p = b.Property;
+    ViewData["Title"] = $"Booking #{b.Id}";
+
+    // Status timeline: Pending -> Approved -> CheckedIn -> Completed
+    var flow = new[] { BookingStatus.Pending, BookingStatus.Approved, BookingStatus.CheckedIn, BookingStatus.Completed };
+    var labels = new[] { "Requested", "Approved", "Checked in", "Completed" };
+    var reached = Array.IndexOf(flow, b.Status);
+    var isClosed = b.Status is BookingStatus.Rejected or BookingStatus.Cancelled;
+    var showAddress = b.Status is BookingStatus.Approved or BookingStatus.CheckedIn or BookingStatus.Completed;
+}
+
+<div class="py-4">
+    <a asp-action="Index" class="text-dark text-decoration-none fw-semibold"><i class="bi bi-chevron-left"></i> Trips</a>
+
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mt-2 mb-3">
+        <div>
+            <h1 class="h3 fw-bold mb-1">@p.Title</h1>
+            <div class="text-muted">Booking #@b.Id &middot; requested @b.CreatedAt.ToLocalTime().ToString("dd MMM yyyy, HH:mm")</div>
+        </div>
+        <span class="stb-badge stb-badge-@b.Status.ToString().ToLowerInvariant() fs-6">@b.Status</span>
+    </div>
+
+    @* ---------- Timeline ---------- *@
+    @if (isClosed)
+    {
+        <div class="alert @(b.Status == BookingStatus.Rejected ? "alert-danger" : "alert-secondary")">
+            <i class="bi bi-x-circle"></i>
+            @(b.Status == BookingStatus.Rejected ? "The Host declined this request." : "This booking was cancelled.")
+            @if (b.Payment != null)
+            {
+                <span>Payment status: <strong>@b.Payment.Status</strong>.</span>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="stb-card mb-4">
+            <div class="stb-timeline">
+                @for (var i = 0; i < flow.Length; i++)
+                {
+                    var state = i < reached || (i == reached && i == flow.Length - 1) ? "done" : i == reached ? "done current" : "";
+                    <div class="stb-timeline-step @state">
+                        <span class="dot">
+                            @if (i <= reached)
+                            {
+                                <i class="bi bi-check-lg"></i>
+                            }
+                            else
+                            {
+                                <text>@(i + 1)</text>
+                            }
+                        </span>
+                        <div>@labels[i]</div>
+                    </div>
+                }
+            </div>
+            <p class="small text-muted mb-0 text-center">
+                @switch (b.Status)
+                {
+                    case BookingStatus.Pending:
+                        <span>Waiting for @p.Host.FirstName to accept your request. You'll get a notification.</span>
+                        break;
+                    case BookingStatus.Approved:
+                        <span>Your stay is confirmed! Complete online check-in before you arrive.</span>
+                        break;
+                    case BookingStatus.CheckedIn:
+                        <span>You're checked in - enjoy your stay!</span>
+                        break;
+                    case BookingStatus.Completed:
+                        <span>Hope you had a great stay.</span>
+                        break;
+                }
+            </p>
+        </div>
+    }
+
+    <div class="row g-4">
+        <div class="col-lg-7">
+            @if (Model.CanCheckIn)
+            {
+                <div class="stb-card mb-4 border-2" style="border-color:var(--stb-primary)">
+                    <h2 class="h5 fw-semibold"><i class="bi bi-person-vcard text-stb"></i> Online check-in</h2>
+                    @if (b.GuestCheckIn == null)
+                    {
+                        <p class="text-muted mb-3">The Host needs a few details and a copy of your ID or passport before you arrive.</p>
+                        <a asp-controller="CheckIn" asp-action="Index" asp-route-id="@b.Id" class="btn btn-stb">Start check-in</a>
+                    }
+                    else
+                    {
+                        <p class="text-muted mb-3">Status: <strong>@b.GuestCheckIn.Status</strong></p>
+                        <a asp-controller="CheckIn" asp-action="Index" asp-route-id="@b.Id" class="btn btn-stb">
+                            @(b.GuestCheckIn.Status is CheckInStatus.Submitted ? "View check-in" : "Continue check-in")
+                        </a>
+                    }
+                </div>
+            }
+
+            <div class="stb-card mb-4">
+                <h2 class="h5 fw-semibold mb-3">Reservation details</h2>
+                <div class="row small g-3">
+                    <div class="col-6"><div class="text-muted">Check-in</div><div class="fw-semibold">@b.CheckInDate.ToString("ddd, dd MMM yyyy")</div></div>
+                    <div class="col-6"><div class="text-muted">Checkout</div><div class="fw-semibold">@b.CheckOutDate.ToString("ddd, dd MMM yyyy")</div></div>
+                    <div class="col-6"><div class="text-muted">Guests</div><div class="fw-semibold">@b.NumberOfGuests</div></div>
+                    <div class="col-6"><div class="text-muted">Host</div><div class="fw-semibold">@p.Host.FullName</div></div>
+                    <div class="col-12">
+                        <div class="text-muted">Address</div>
+                        <div class="fw-semibold">
+                            @if (showAddress)
+                            {
+                                <text>@p.Address, @p.City</text>
+                            }
+                            else
+                            {
+                                <span class="text-muted fw-normal">@p.City - the full address is shared once the Host approves your booking.</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+                @if (!string.IsNullOrWhiteSpace(b.GuestMessage))
+                {
+                    <div class="mt-3 p-2 bg-light rounded small"><strong>Your message:</strong> @b.GuestMessage</div>
+                }
+                <div class="d-flex flex-wrap gap-2 mt-3">
+                    <a asp-controller="Properties" asp-action="View" asp-route-id="@p.Id" class="btn btn-sm btn-outline-stb">View listing</a>
+                    <a asp-controller="Messages" asp-action="Conversation" asp-route-userId="@p.HostId" asp-route-propertyId="@p.Id" class="btn btn-sm btn-outline-stb">
+                        <i class="bi bi-chat"></i> Message Host
+                    </a>
+                </div>
+            </div>
+
+            @* ---------- Review ---------- *@
+            @if (Model.CanReview)
+            {
+                <div class="stb-card mb-4">
+                    <h2 class="h5 fw-semibold">How was your stay?</h2>
+                    <form asp-action="AddReview" method="post">
+                        <input type="hidden" name="BookingId" value="@b.Id" />
+                        <div class="mb-2 fs-4 stb-stars" id="starPicker">
+                            @for (var s = 1; s <= 5; s++)
+                            {
+                                <input type="radio" class="btn-check" name="Rating" id="star-@s" value="@s" />
+                                <label for="star-@s" class="me-1" style="cursor:pointer" title="@s star(s)"><i class="bi bi-star"></i></label>
+                            }
+                        </div>
+                        <textarea name="Comment" class="form-control mb-3" rows="3" maxlength="1000" placeholder="Tell future guests what you loved"></textarea>
+                        <button type="submit" class="btn btn-stb">Submit review</button>
+                    </form>
+                </div>
+            }
+            else if (Model.ExistingReview != null)
+            {
+                <div class="stb-card mb-4">
+                    <h2 class="h6 fw-semibold">Your review</h2>
+                    <div class="stb-stars">
+                        @for (var s = 1; s <= 5; s++)
+                        {
+                            <i class="bi @(s <= Model.ExistingReview.Rating ? "bi-star-fill" : "bi-star")"></i>
+                        }
+                    </div>
+                    <p class="small mb-0 mt-1">@Model.ExistingReview.Comment</p>
+                </div>
+            }
+
+            @if (Model.CanCancel)
+            {
+                <form asp-action="Cancel" asp-route-id="@b.Id" method="post" onsubmit="return confirm('Cancel this booking?');">
+                    <button type="submit" class="btn btn-link text-danger fw-semibold p-0">Cancel booking</button>
+                    <span class="small text-muted d-block">Free cancellation before check-in. Paid bookings are refunded in full.</span>
+                </form>
+            }
+        </div>
+
+        <div class="col-lg-5">
+            <div class="stb-booking-box">
+                @if (Model.CoverImageUrl != null)
+                {
+                    <img src="@Model.CoverImageUrl" alt="" class="w-100 rounded-3 mb-3" style="height:200px;object-fit:cover" />
+                }
+                <h2 class="h5 fw-semibold">Price details</h2>
+                <div class="d-flex justify-content-between mb-2 small"><span>R @b.PricePerNight.ToString("N2") x @b.Nights night(s)</span><span>R @((b.PricePerNight * b.Nights).ToString("N2"))</span></div>
+                <div class="d-flex justify-content-between mb-2 small"><span>Cleaning fee</span><span>R @b.CleaningFee.ToString("N2")</span></div>
+                <div class="d-flex justify-content-between mb-2 small"><span>Service fee</span><span>R @b.ServiceFee.ToString("N2")</span></div>
+                <hr />
+                <div class="d-flex justify-content-between fw-bold"><span>Total (ZAR)</span><span>R @b.TotalPrice.ToString("N2")</span></div>
+                @if (b.Payment != null)
+                {
+                    <div class="small text-muted mt-3">
+                        Payment: <span class="stb-badge stb-badge-@b.Payment.Status.ToString().ToLowerInvariant()">@b.Payment.Status</span>
+                        @if (b.Payment.Reference != null)
+                        {
+                            <span>&middot; Ref @b.Payment.Reference</span>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Fill the stars up to the one that is hovered / chosen
+        (function () {
+            const picker = document.getElementById("starPicker");
+            if (!picker) return;
+            const icons = picker.querySelectorAll("label i");
+            const paint = n => icons.forEach((icon, i) => icon.className = "bi " + (i < n ? "bi-star-fill" : "bi-star"));
+            picker.querySelectorAll("input").forEach(input => input.addEventListener("change", () => paint(parseInt(input.value, 10))));
+            picker.querySelectorAll("label").forEach((label, i) => {
+                label.addEventListener("mouseenter", () => paint(i + 1));
+                label.addEventListener("mouseleave", () => {
+                    const checked = picker.querySelector("input:checked");
+                    paint(checked ? parseInt(checked.value, 10) : 0);
+                });
+            });
+        })();
+    </script>
+}

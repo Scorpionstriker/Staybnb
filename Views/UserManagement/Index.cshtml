@@ -1,0 +1,123 @@
+@using Microsoft.AspNetCore.Identity
+@using Staybnb.Models.Constants
+@using Staybnb.Models.Entities
+@inject UserManager<ApplicationUser> UserManager
+@model Staybnb.Models.ViewModels.Admin.UserManagementViewModel
+@{
+    ViewData["Title"] = "User Management";
+    var me = UserManager.GetUserId(User);
+    var tabs = new (string Key, string Label, int Count)[]
+    {
+        ("guest", "Guests", Model.GuestCount),
+        ("host", "Hosts", Model.HostCount),
+        ("admin", "Administrators", Model.AdminCount),
+        ("all", "All users", Model.AllCount)
+    };
+}
+
+<div class="alert alert-light border small d-flex gap-2">
+    <i class="bi bi-shield-lock text-stb fs-5"></i>
+    <div>
+        <strong>SuperAdmin only.</strong> Find an existing <strong>Guest</strong> and promote them to <strong>Admin</strong>.
+        Promotion adds the Admin role and removes the Guest role, and is recorded in the activity log.
+    </div>
+</div>
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <ul class="nav stb-tabs">
+        @foreach (var tab in tabs)
+        {
+            <li class="nav-item">
+                <a class="nav-link @(Model.Role == tab.Key ? "active" : "")" asp-action="Index" asp-route-role="@tab.Key" asp-route-search="@Model.Search">
+                    @tab.Label <span class="badge rounded-pill text-bg-light">@tab.Count</span>
+                </a>
+            </li>
+        }
+    </ul>
+    <form method="get" asp-action="Index" class="d-flex gap-2">
+        <input type="hidden" name="role" value="@Model.Role" />
+        <input type="search" name="search" value="@Model.Search" class="form-control form-control-sm" placeholder="Find by name, email or phone" autofocus />
+        <button type="submit" class="btn btn-sm btn-outline-stb"><i class="bi bi-search"></i></button>
+    </form>
+</div>
+
+<div class="stb-card p-0 overflow-hidden">
+    @if (!Model.Users.Any())
+    {
+        <p class="text-center text-muted py-5 mb-0">No users found.</p>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table align-middle stb-table mb-0">
+                <thead class="table-light">
+                    <tr><th class="ps-3">User</th><th>Role(s)</th><th>Joined</th><th>Bookings</th><th>Listings</th><th class="text-end pe-3">Action</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var u in Model.Users)
+                    {
+                        var isGuest = u.Roles.Contains(Roles.Guest);
+                        var isAdmin = u.Roles.Contains(Roles.Admin);
+                        var isSuper = u.Roles.Contains(Roles.SuperAdmin);
+                        <tr>
+                            <td class="ps-3">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="stb-avatar">@u.Initials</span>
+                                    <div class="small">
+                                        <div class="fw-semibold">
+                                            @u.FullName
+                                            @if (u.Id == me)
+                                            {
+                                                <span class="text-muted">(you)</span>
+                                            }
+                                        </div>
+                                        <div class="text-muted">@u.Email @(u.PhoneNumber != null ? $"· {u.PhoneNumber}" : "")</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                @foreach (var r in u.Roles)
+                                {
+                                    <span class="badge @(r == Roles.SuperAdmin ? "text-bg-dark" : r == Roles.Admin ? "text-bg-danger" : r == Roles.Host ? "text-bg-primary" : "text-bg-light")">@r</span>
+                                }
+                                @if (u.IsLockedOut)
+                                {
+                                    <span class="badge text-bg-warning">Locked out</span>
+                                }
+                            </td>
+                            <td class="small text-nowrap">@u.CreatedAt.ToLocalTime().ToString("dd MMM yyyy")</td>
+                            <td class="small">@u.BookingCount</td>
+                            <td class="small">@u.ListingCount</td>
+                            <td class="text-end pe-3">
+                                @if (isGuest)
+                                {
+                                    <form asp-action="Promote" method="post" class="d-inline"
+                                          onsubmit="return confirm('Promote this user to Admin? They will lose the Guest role.');">
+                                        <input type="hidden" name="userId" value="@u.Id" />
+                                        <input type="hidden" name="role" value="@Model.Role" />
+                                        <input type="hidden" name="search" value="@Model.Search" />
+                                        <button type="submit" class="btn btn-sm btn-stb"><i class="bi bi-arrow-up-circle"></i> Promote to Admin</button>
+                                    </form>
+                                }
+                                else if (isAdmin && !isSuper && u.Id != me)
+                                {
+                                    <form asp-action="Revoke" method="post" class="d-inline"
+                                          onsubmit="return confirm('Remove Admin access from this user? They become a Guest again.');">
+                                        <input type="hidden" name="userId" value="@u.Id" />
+                                        <input type="hidden" name="role" value="@Model.Role" />
+                                        <input type="hidden" name="search" value="@Model.Search" />
+                                        <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-arrow-down-circle"></i> Revoke Admin</button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <span class="small text-muted">&mdash;</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

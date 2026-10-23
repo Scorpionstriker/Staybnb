@@ -1,0 +1,240 @@
+@using Staybnb.Models.Enums
+@model Staybnb.Models.ViewModels.Host.HostApplicationViewModel
+@{
+    ViewData["Title"] = Model.IsAdditionalProperty ? "List another property" : "Become a Host";
+
+    var typeIcons = new Dictionary<PropertyType, string>
+    {
+        [PropertyType.Apartment] = "bi-building",
+        [PropertyType.House] = "bi-house",
+        [PropertyType.Cabin] = "bi-tree",
+        [PropertyType.Villa] = "bi-house-heart",
+        [PropertyType.Cottage] = "bi-house-door",
+        [PropertyType.Guesthouse] = "bi-houses",
+        [PropertyType.Room] = "bi-door-closed"
+    };
+}
+
+
+<div class="row justify-content-center my-4">
+    <div class="col-12 col-lg-9 col-xl-8">
+
+        <div class="mb-4">
+            <h1 class="h2 fw-bold mb-1">
+                @(Model.IsAdditionalProperty ? "List another property" : "Airbnb it - become a Staybnb Host")
+            </h1>
+            <p class="text-muted mb-0">
+                @(Model.IsAdditionalProperty
+                    ? "Tell us about your new place. It goes live as soon as an administrator approves it."
+                    : "Tell us about your place. Once an administrator approves your application, your account becomes a Host account and your listing goes live.")
+            </p>
+        </div>
+
+        <form asp-action="Apply" method="post" enctype="multipart/form-data" id="hostApplicationForm" novalidate>
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+            @* ================= 1. The place ================= *@
+            <section class="stb-card mb-4">
+                <h2 class="stb-section-title"><span class="stb-step-number">1</span>Which of these best describes your place?</h2>
+                <p class="stb-section-subtitle">Guests can filter listings by property type.</p>
+
+                <div class="row g-2 mb-4">
+                    @foreach (var type in Enum.GetValues<PropertyType>())
+                    {
+                        <div class="col-6 col-md-3">
+                            <input type="radio" class="btn-check stb-option-input" name="PropertyType"
+                                   id="type-@type" value="@type" checked="@(Model.PropertyType == type)" />
+                            <label class="stb-option" for="type-@type">
+                                <i class="bi @typeIcons[type]"></i>
+                                <span class="fw-semibold">@type</span>
+                            </label>
+                        </div>
+                    }
+                </div>
+                <span asp-validation-for="PropertyType" class="text-danger small"></span>
+
+                <div class="mb-3">
+                    <label asp-for="Title" class="form-label fw-semibold"></label>
+                    <input asp-for="Title" class="form-control form-control-lg" placeholder="e.g. Cozy Forest Cabin with Mountain Views" maxlength="100" />
+                    <span asp-validation-for="Title" class="text-danger small"></span>
+                </div>
+
+                <div>
+                    <label asp-for="Description" class="form-label fw-semibold"></label>
+                    <textarea asp-for="Description" class="form-control" rows="6" maxlength="4000"
+                              placeholder="What makes your place special? Describe the space, the neighbourhood and what guests can expect."></textarea>
+                    <div class="d-flex justify-content-between">
+                        <span asp-validation-for="Description" class="text-danger small"></span>
+                        <small class="text-muted ms-auto"><span id="descriptionCount">0</span>/4000</small>
+                    </div>
+                </div>
+            </section>
+
+            @* ================= 2. Location ================= *@
+            <section class="stb-card mb-4">
+                <h2 class="stb-section-title"><span class="stb-step-number">2</span>Where's your place located?</h2>
+                <p class="stb-section-subtitle">Your full address is only shared with guests after their booking is approved.</p>
+
+                <div class="row g-3">
+                    <div class="col-md-8">
+                        <label asp-for="Address" class="form-label fw-semibold"></label>
+                        <input asp-for="Address" class="form-control" placeholder="e.g. 12 Forest Lane, Hillcrest" autocomplete="street-address" />
+                        <span asp-validation-for="Address" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="City" class="form-label fw-semibold"></label>
+                        <input asp-for="City" class="form-control" placeholder="e.g. Durban" list="saCities" autocomplete="address-level2" />
+                        <datalist id="saCities">
+                            <option value="Cape Town"></option>
+                            <option value="Johannesburg"></option>
+                            <option value="Durban"></option>
+                            <option value="Pretoria"></option>
+                            <option value="Umhlanga"></option>
+                            <option value="Stellenbosch"></option>
+                            <option value="Gqeberha"></option>
+                            <option value="Knysna"></option>
+                            <option value="Bloemfontein"></option>
+                            <option value="Drakensberg"></option>
+                        </datalist>
+                        <span asp-validation-for="City" class="text-danger small"></span>
+                    </div>
+                </div>
+            </section>
+
+            @* ================= 3. Rooms ================= *@
+            <section class="stb-card mb-4">
+                <h2 class="stb-section-title"><span class="stb-step-number">3</span>Share some basics about your place</h2>
+                <p class="stb-section-subtitle">You can change these later.</p>
+
+                <div class="row g-3">
+                    <div class="col-6 col-md-3">
+                        <label asp-for="MaxGuests" class="form-label fw-semibold"></label>
+                        <input asp-for="MaxGuests" type="number" min="1" max="50" class="form-control" />
+                        <span asp-validation-for="MaxGuests" class="text-danger small"></span>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <label asp-for="Bedrooms" class="form-label fw-semibold"></label>
+                        <input asp-for="Bedrooms" type="number" min="0" max="50" class="form-control" />
+                        <span asp-validation-for="Bedrooms" class="text-danger small"></span>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <label asp-for="Beds" class="form-label fw-semibold"></label>
+                        <input asp-for="Beds" type="number" min="1" max="50" class="form-control" />
+                        <span asp-validation-for="Beds" class="text-danger small"></span>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <label asp-for="Bathrooms" class="form-label fw-semibold"></label>
+                        <input asp-for="Bathrooms" type="number" min="0" max="50" class="form-control" />
+                        <span asp-validation-for="Bathrooms" class="text-danger small"></span>
+                    </div>
+                </div>
+            </section>
+
+            @* ================= 4. Amenities ================= *@
+            <section class="stb-card mb-4">
+                <h2 class="stb-section-title"><span class="stb-step-number">4</span>Tell guests what your place has to offer</h2>
+                <p class="stb-section-subtitle">Select all that apply.</p>
+
+                <div class="row g-2">
+                    @foreach (var amenity in Model.AvailableAmenities)
+                    {
+                        <div class="col-6 col-md-4">
+                            <input type="checkbox" class="btn-check stb-option-input" name="SelectedAmenityIds"
+                                   id="amenity-@amenity.Id" value="@amenity.Id"
+                                   checked="@(Model.SelectedAmenityIds.Contains(amenity.Id))" />
+                            <label class="stb-option" for="amenity-@amenity.Id">
+                                <i class="bi @amenity.IconClass"></i>
+                                <span class="fw-semibold">@amenity.Name</span>
+                            </label>
+                        </div>
+                    }
+                </div>
+            </section>
+
+            @* ================= 5. Pricing ================= *@
+            <section class="stb-card mb-4">
+                <h2 class="stb-section-title"><span class="stb-step-number">5</span>Set your price</h2>
+                <p class="stb-section-subtitle">Guests also pay a service fee on top of your nightly price.</p>
+
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-6">
+                        <label asp-for="PricePerNight" class="form-label fw-semibold"></label>
+                        <div class="input-group input-group-lg">
+                            <span class="input-group-text">R</span>
+                            <input asp-for="PricePerNight" type="number" step="0.01" min="50" class="form-control" />
+                        </div>
+                        <span asp-validation-for="PricePerNight" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="CleaningFee" class="form-label fw-semibold"></label>
+                        <div class="input-group input-group-lg">
+                            <span class="input-group-text">R</span>
+                            <input asp-for="CleaningFee" type="number" step="0.01" min="0" class="form-control" />
+                        </div>
+                        <span asp-validation-for="CleaningFee" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="mt-3 p-3 rounded-3 bg-light small">
+                    Example: a guest staying <strong>2 nights</strong> would pay
+                    <strong id="examplePrice">R 0.00</strong>
+                    (2 nights + cleaning fee + 12% service fee).
+                </div>
+            </section>
+
+            @* ================= 6. Photos (required) ================= *@
+            <section class="stb-card mb-4">
+                <h2 class="stb-section-title"><span class="stb-step-number">6</span>Add some photos of your place <span class="text-danger">*</span></h2>
+                <p class="stb-section-subtitle">
+                    At least <strong>1 photo</strong> is required - your application cannot be submitted without one.
+                    Up to @Model.MaxImages photos, @Model.MaxImageSizeMb MB each (JPG, PNG or WEBP). The first photo is your cover photo.
+                </p>
+
+                <label for="imageInput" class="stb-dropzone d-block mb-3" id="dropzone">
+                    <i class="bi bi-images"></i>
+                    <div class="fw-semibold mt-2">Drag your photos here, or click to browse</div>
+                    <div class="text-muted small">You can add more photos in several goes</div>
+                </label>
+                <input type="file" id="imageInput" name="Images" multiple accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                       class="d-none" data-max-files="@Model.MaxImages" data-max-size-mb="@Model.MaxImageSizeMb" />
+
+                <div id="photoError" class="text-danger small mb-2">
+                    <span asp-validation-for="Images"></span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="small text-muted"><span id="photoCount">0</span> / @Model.MaxImages photos selected</span>
+                </div>
+                <div id="photoPreview" class="stb-photo-grid"></div>
+
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <p class="small text-muted mt-2 mb-0">
+                        <i class="bi bi-info-circle"></i> For security, browsers clear selected files when a form is redisplayed - please select your photos again.
+                    </p>
+                }
+            </section>
+
+            @* ================= Confirm + submit ================= *@
+            <section class="stb-card mb-4">
+                <div class="form-check">
+                    <input asp-for="ConfirmAccuracy" class="form-check-input" />
+                    <label asp-for="ConfirmAccuracy" class="form-check-label"></label>
+                </div>
+                <span asp-validation-for="ConfirmAccuracy" class="text-danger small"></span>
+            </section>
+
+            <div class="d-flex justify-content-between align-items-center mb-5">
+                <a asp-controller="Home" asp-action="Index" class="btn btn-link text-dark fw-semibold">Cancel</a>
+                <button type="submit" class="btn btn-stb btn-lg px-5" id="submitApplication">
+                    <span class="spinner-border spinner-border-sm d-none me-2" role="status" aria-hidden="true"></span>
+                    Submit application
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/apply-host.js" asp-append-version="true"></script>
+}

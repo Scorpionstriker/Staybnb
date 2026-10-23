@@ -1,20 +1,15 @@
+using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Staybnb.Models;
-using System.Diagnostics;
 
 namespace Staybnb.Controllers
 {
     public class HomeController : Controller
     {
-        public IActionResult Index()
-        {
-            return View();
-        }
+        // The Staybnb home page IS the property gallery
+        public IActionResult Index() => RedirectToAction("Index", "Properties");
 
-        public IActionResult Privacy()
-        {
-            return View();
-        }
+        public IActionResult Privacy() => View();
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()

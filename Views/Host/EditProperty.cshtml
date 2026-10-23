@@ -1,0 +1,158 @@
+@using Staybnb.Models.Enums
+@model Staybnb.Models.ViewModels.Host.PropertyEditViewModel
+@{
+    ViewData["Title"] = "Edit listing";
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <a asp-action="Properties" class="text-dark text-decoration-none small fw-semibold"><i class="bi bi-chevron-left"></i> My Properties</a>
+    <span class="stb-badge @(Model.IsActive ? "stb-badge-active" : "stb-badge-inactive")">@(Model.IsActive ? "Active" : "Inactive")</span>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <form asp-action="EditProperty" method="post" enctype="multipart/form-data">
+            <input type="hidden" asp-for="Id" />
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+            <div class="stb-card mb-4">
+                <h2 class="stb-section-title mb-3">Listing details</h2>
+                <div class="mb-3">
+                    <label asp-for="Title" class="form-label fw-semibold"></label>
+                    <input asp-for="Title" class="form-control" />
+                    <span asp-validation-for="Title" class="text-danger small"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Description" class="form-label fw-semibold"></label>
+                    <textarea asp-for="Description" class="form-control" rows="6"></textarea>
+                    <span asp-validation-for="Description" class="text-danger small"></span>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label asp-for="PropertyType" class="form-label fw-semibold"></label>
+                        <select asp-for="PropertyType" asp-items="Html.GetEnumSelectList<PropertyType>()" class="form-select"></select>
+                    </div>
+                    <div class="col-md-5">
+                        <label asp-for="Address" class="form-label fw-semibold"></label>
+                        <input asp-for="Address" class="form-control" />
+                        <span asp-validation-for="Address" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-3">
+                        <label asp-for="City" class="form-label fw-semibold"></label>
+                        <input asp-for="City" class="form-control" />
+                        <span asp-validation-for="City" class="text-danger small"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stb-card mb-4">
+                <h2 class="stb-section-title mb-3">Rooms &amp; pricing</h2>
+                <div class="row g-3">
+                    <div class="col-6 col-md-3">
+                        <label asp-for="MaxGuests" class="form-label fw-semibold"></label>
+                        <input asp-for="MaxGuests" type="number" min="1" max="50" class="form-control" />
+                        <span asp-validation-for="MaxGuests" class="text-danger small"></span>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <label asp-for="Bedrooms" class="form-label fw-semibold"></label>
+                        <input asp-for="Bedrooms" type="number" min="0" max="50" class="form-control" />
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <label asp-for="Beds" class="form-label fw-semibold"></label>
+                        <input asp-for="Beds" type="number" min="1" max="50" class="form-control" />
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <label asp-for="Bathrooms" class="form-label fw-semibold"></label>
+                        <input asp-for="Bathrooms" type="number" min="0" max="50" class="form-control" />
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="PricePerNight" class="form-label fw-semibold"></label>
+                        <div class="input-group">
+                            <span class="input-group-text">R</span>
+                            <input asp-for="PricePerNight" type="number" step="0.01" min="50" class="form-control" />
+                        </div>
+                        <span asp-validation-for="PricePerNight" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="CleaningFee" class="form-label fw-semibold"></label>
+                        <div class="input-group">
+                            <span class="input-group-text">R</span>
+                            <input asp-for="CleaningFee" type="number" step="0.01" min="0" class="form-control" />
+                        </div>
+                        <span asp-validation-for="CleaningFee" class="text-danger small"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stb-card mb-4">
+                <h2 class="stb-section-title mb-3">Amenities</h2>
+                <div class="row g-2">
+                    @foreach (var amenity in Model.AvailableAmenities)
+                    {
+                        <div class="col-6 col-md-4">
+                            <input type="checkbox" class="btn-check stb-option-input" name="SelectedAmenityIds"
+                                   id="amenity-@amenity.Id" value="@amenity.Id"
+                                   checked="@(Model.SelectedAmenityIds.Contains(amenity.Id))" />
+                            <label class="stb-option py-2" for="amenity-@amenity.Id">
+                                <i class="bi @amenity.IconClass d-inline me-2 fs-6"></i><span class="fw-semibold small">@amenity.Name</span>
+                            </label>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="stb-card mb-4">
+                <h2 class="stb-section-title">Add photos</h2>
+                <p class="stb-section-subtitle">Optional. @Model.ExistingImages.Count of @Model.MaxImages photos used.</p>
+                <input asp-for="NewImages" type="file" multiple accept=".jpg,.jpeg,.png,.webp" class="form-control" />
+                <span asp-validation-for="NewImages" class="text-danger small"></span>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2 mb-4">
+                <a asp-action="Properties" class="btn btn-link text-dark fw-semibold">Cancel</a>
+                <button type="submit" class="btn btn-stb px-4">Save changes</button>
+            </div>
+        </form>
+    </div>
+
+    @* ---------- Existing photos (separate small forms) ---------- *@
+    <div class="col-lg-4">
+        <div class="stb-card">
+            <h2 class="stb-section-title mb-3">Photos</h2>
+            <div class="row g-2">
+                @foreach (var image in Model.ExistingImages)
+                {
+                    <div class="col-6">
+                        <div class="stb-photo mb-1">
+                            <img src="@image.ImageUrl" alt="Listing photo" />
+                            @if (image.IsCover)
+                            {
+                                <span class="stb-photo-cover">Cover</span>
+                            }
+                        </div>
+                        <div class="d-flex gap-1">
+                            @if (!image.IsCover)
+                            {
+                                <form asp-action="SetCoverImage" asp-route-imageId="@image.Id" method="post" class="flex-grow-1">
+                                    <button type="submit" class="btn btn-sm btn-light w-100" title="Make cover photo"><i class="bi bi-star"></i></button>
+                                </form>
+                            }
+                            @if (Model.ExistingImages.Count > 1)
+                            {
+                                <form asp-action="DeleteImage" asp-route-imageId="@image.Id" method="post" class="flex-grow-1"
+                                      onsubmit="return confirm('Delete this photo?');">
+                                    <button type="submit" class="btn btn-sm btn-light text-danger w-100" title="Delete photo"><i class="bi bi-trash"></i></button>
+                                </form>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+            <p class="small text-muted mt-3 mb-0">A listing must always keep at least one photo.</p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

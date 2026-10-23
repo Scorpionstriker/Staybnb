@@ -1,0 +1,19 @@
+@model Staybnb.Models.ViewModels.Host.HostCheckInsViewModel
+@{
+    ViewData["Title"] = "Guest Check-ins";
+}
+
+<div class="stb-card mb-4">
+    <h2 class="h6 fw-bold mb-3"><i class="bi bi-hourglass-split text-warning me-1"></i>Waiting for your verification (@Model.AwaitingReview.Count)</h2>
+    @await Html.PartialAsync("_CheckInTable", (Model.AwaitingReview, "No check-ins are waiting for you."))
+</div>
+
+<div class="stb-card mb-4">
+    <h2 class="h6 fw-bold mb-3"><i class="bi bi-pencil-square me-1"></i>Guests still completing check-in (@Model.InProgress.Count)</h2>
+    @await Html.PartialAsync("_CheckInTable", (Model.InProgress, "Nobody is busy with check-in right now."))
+</div>
+
+<div class="stb-card">
+    <h2 class="h6 fw-bold mb-3"><i class="bi bi-check-circle text-success me-1"></i>Recently completed</h2>
+    @await Html.PartialAsync("_CheckInTable", (Model.Completed, "No completed check-ins yet."))
+</div>

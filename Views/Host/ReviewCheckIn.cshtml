@@ -1,0 +1,135 @@
+@using Staybnb.Models.Enums
+@using Staybnb.Services
+@model Staybnb.Models.ViewModels.Host.CheckInReviewViewModel
+@{
+    var c = Model.CheckIn;
+    var booking = c.Booking;
+    ViewData["Title"] = "Verify Check-in";
+}
+
+<a asp-action="CheckIns" class="text-dark text-decoration-none small fw-semibold"><i class="bi bi-chevron-left"></i> All check-ins</a>
+
+<div class="row g-4 mt-1">
+    <div class="col-lg-8">
+        <div class="stb-card mb-4">
+            <div class="d-flex flex-wrap justify-content-between gap-2">
+                <div>
+                    <h2 class="h5 fw-bold mb-1">@booking.Guest.FullName</h2>
+                    <div class="text-muted small">
+                        @booking.Property.Title &middot; @booking.CheckInDate.ToString("dd MMM") - @booking.CheckOutDate.ToString("dd MMM yyyy")
+                        &middot; @booking.NumberOfGuests guest(s) &middot; Booking #@booking.Id
+                    </div>
+                </div>
+                <span class="stb-badge @(c.Status == CheckInStatus.Verified ? "stb-badge-verified" : "stb-badge-pending")">Check-in: @c.Status</span>
+            </div>
+            @if (c.SubmittedAt.HasValue)
+            {
+                <div class="small text-muted mt-2">Submitted @c.SubmittedAt.Value.ToLocalTime().ToString("dd MMM yyyy, HH:mm")</div>
+            }
+        </div>
+
+        <h3 class="h6 fw-bold mb-2">Steps &amp; documents</h3>
+        @foreach (var step in Model.Steps)
+        {
+            var done = step.StepNumber < c.CurrentStep || c.Status is CheckInStatus.Submitted or CheckInStatus.Verified;
+            var docType = step.RequiresDocument ? CheckInService.DocumentTypeFor(step) : null;
+            var doc = docType == null ? null : c.Documents.FirstOrDefault(d => d.DocumentType == docType);
+
+            <div class="stb-card mb-3">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <span class="stb-step-number">@step.StepNumber</span><span class="fw-semibold">@step.Title</span>
+                        @if (!string.IsNullOrWhiteSpace(step.Instructions))
+                        {
+                            <p class="small text-muted mt-2 mb-0">@step.Instructions</p>
+                        }
+                    </div>
+                    @if (done)
+                    {
+                        <span class="text-success small fw-semibold"><i class="bi bi-check-circle-fill"></i> Done</span>
+                    }
+                    else
+                    {
+                        <span class="text-muted small">Not completed</span>
+                    }
+                </div>
+
+                @if (step.RequiresDocument)
+                {
+                    <div class="border-top mt-3 pt-3">
+                        @if (doc == null)
+                        {
+                            <p class="small text-muted mb-0"><i class="bi bi-file-earmark-x"></i> No @docType uploaded yet.</p>
+                        }
+                        else
+                        {
+                            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                                <div class="small">
+                                    <i class="bi bi-file-earmark-person fs-5 me-1"></i>
+                                    <strong>@doc.DocumentType</strong>
+                                    <span class="text-muted">&middot; uploaded @doc.UploadedAt.ToLocalTime().ToString("dd MMM, HH:mm")</span>
+                                    <span class="stb-badge stb-badge-@doc.Status.ToString().ToLowerInvariant() ms-1">@doc.Status</span>
+                                    @if (doc.Status == DocumentStatus.Rejected && doc.RejectionReason != null)
+                                    {
+                                        <div class="text-danger mt-1">Rejected: @doc.RejectionReason</div>
+                                    }
+                                </div>
+                                <a asp-controller="Documents" asp-action="Open" asp-route-id="@doc.Id" target="_blank" class="btn btn-sm btn-outline-stb">
+                                    <i class="bi bi-box-arrow-up-right"></i> Open document
+                                </a>
+                            </div>
+
+                            if (doc.Status == DocumentStatus.Pending && c.Status == CheckInStatus.Submitted)
+                            {
+                                <div class="d-flex flex-column flex-md-row gap-2 mt-3">
+                                    <form asp-action="VerifyDocument" method="post">
+                                        <input type="hidden" name="documentId" value="@doc.Id" />
+                                        <input type="hidden" name="checkInId" value="@c.Id" />
+                                        <button type="submit" class="btn btn-success btn-sm"><i class="bi bi-check-lg"></i> Verify document</button>
+                                    </form>
+                                    <form asp-action="RejectDocument" method="post" class="d-flex gap-2 flex-grow-1">
+                                        <input type="hidden" name="documentId" value="@doc.Id" />
+                                        <input type="hidden" name="checkInId" value="@c.Id" />
+                                        <input type="text" name="reason" class="form-control form-control-sm" required maxlength="300"
+                                               placeholder="Reason, e.g. photo is blurry / name doesn't match booking" />
+                                        <button type="submit" class="btn btn-outline-danger btn-sm text-nowrap">Reject</button>
+                                    </form>
+                                </div>
+                            }
+                        }
+                    </div>
+                }
+            </div>
+        }
+    </div>
+
+    <div class="col-lg-4">
+        <div class="stb-card position-sticky" style="top:80px">
+            <h3 class="h6 fw-bold">Complete check-in</h3>
+            @if (c.Status == CheckInStatus.Verified)
+            {
+                <p class="small text-success mb-0"><i class="bi bi-check-circle-fill"></i> This guest is checked in. Booking status: <strong>@booking.Status</strong>.</p>
+            }
+            else if (c.Status != CheckInStatus.Submitted)
+            {
+                <p class="small text-muted mb-0">The guest hasn't submitted their check-in yet. You'll get a notification when they do.</p>
+            }
+            else
+            {
+                <p class="small text-muted">
+                    Once every required document is verified, complete the check-in.
+                    The booking moves from <strong>Approved</strong> to <strong>CheckedIn</strong> and the guest is notified.
+                </p>
+                <form asp-action="ApproveCheckIn" asp-route-id="@c.Id" method="post">
+                    <button type="submit" class="btn btn-stb w-100" disabled="@(!Model.AllDocumentsVerified)">
+                        <i class="bi bi-door-open"></i> Complete check-in
+                    </button>
+                </form>
+                if (!Model.AllDocumentsVerified)
+                {
+                    <p class="small text-muted mt-2 mb-0">Verify all documents first.</p>
+                }
+            }
+        </div>
+    </div>
+</div>

@@ -1,0 +1,20 @@
+@* Shows one-off messages set in a controller with TempData["Success"], ["Error"] or ["Info"] *@
+@{
+    var alerts = new (string Key, string Css, string Icon)[]
+    {
+        ("Success", "alert-success", "bi-check-circle-fill"),
+        ("Error", "alert-danger", "bi-exclamation-triangle-fill"),
+        ("Info", "alert-info", "bi-info-circle-fill")
+    };
+}
+@foreach (var alert in alerts)
+{
+    if (TempData[alert.Key] is string message && !string.IsNullOrWhiteSpace(message))
+    {
+        <div class="alert @alert.Css alert-dismissible fade show d-flex align-items-center gap-2 mt-3" role="alert">
+            <i class="bi @alert.Icon"></i>
+            <div>@message</div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+}

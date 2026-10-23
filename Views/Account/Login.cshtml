@@ -1,0 +1,51 @@
+@model Staybnb.Models.ViewModels.Account.LoginViewModel
+@{
+    ViewData["Title"] = "Log in";
+}
+
+<div class="row justify-content-center my-5">
+    <div class="col-12 col-md-7 col-lg-5">
+        <div class="card shadow-sm border-0 rounded-4">
+            <div class="card-header bg-white text-center border-bottom py-3">
+                <h1 class="h5 fw-semibold mb-0">Log in</h1>
+            </div>
+            <div class="card-body p-4">
+                <h2 class="h4 fw-semibold mb-4">Welcome back</h2>
+
+                <form asp-action="Login" method="post" novalidate>
+                    <input type="hidden" asp-for="ReturnUrl" />
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2" role="alert"></div>
+
+                    <div class="form-floating mb-1">
+                        <input asp-for="Email" class="form-control" placeholder="name@example.com" autocomplete="username" />
+                        <label asp-for="Email"></label>
+                    </div>
+                    <span asp-validation-for="Email" class="text-danger small"></span>
+
+                    <div class="form-floating mt-3 mb-1">
+                        <input asp-for="Password" class="form-control" placeholder="Password" autocomplete="current-password" />
+                        <label asp-for="Password"></label>
+                    </div>
+                    <span asp-validation-for="Password" class="text-danger small"></span>
+
+                    <div class="form-check mt-3">
+                        <input asp-for="RememberMe" class="form-check-input" />
+                        <label asp-for="RememberMe" class="form-check-label"></label>
+                    </div>
+
+                    <button type="submit" class="btn btn-danger w-100 py-2 mt-3 fw-semibold">Continue</button>
+                </form>
+
+                <hr class="my-4" />
+                <p class="text-center mb-0">
+                    New to Staybnb?
+                    <a asp-action="Register" class="fw-semibold text-dark">Create an account</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

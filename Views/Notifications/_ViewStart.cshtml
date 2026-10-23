@@ -1,0 +1,7 @@
+@using Staybnb.Models.Constants
+@* Messages / Notifications appear inside the right "home" for each role *@
+@{
+    Layout = User.IsInRole(Roles.Admin) || User.IsInRole(Roles.SuperAdmin) ? "_AdminLayout"
+           : User.IsInRole(Roles.Host) ? "_HostLayout"
+           : "_Layout";
+}

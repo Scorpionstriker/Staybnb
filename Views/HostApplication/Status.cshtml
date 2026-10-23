@@ -1,0 +1,109 @@
+@using Staybnb.Models.Constants
+@using Staybnb.Models.Enums
+@model List<Staybnb.Models.Entities.HostApplication>
+@{
+    ViewData["Title"] = "Host application status";
+    var hasPending = Model.Any(a => a.Status == ApplicationStatus.Pending && !a.IsAdditionalProperty);
+    var canApply = User.IsInRole(Roles.Host) || !hasPending;
+}
+
+
+<div class="row justify-content-center my-4">
+    <div class="col-12 col-lg-9">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+            <div>
+                <h1 class="h2 fw-bold mb-1">Your host applications</h1>
+                <p class="text-muted mb-0">Track the review status of every property you have submitted.</p>
+            </div>
+            @if (canApply)
+            {
+                <a asp-action="Apply" class="btn btn-stb">
+                    <i class="bi bi-plus-lg me-1"></i>@(User.IsInRole(Roles.Host) ? "Add another property" : "Apply to host")
+                </a>
+            }
+        </div>
+
+        @if (!Model.Any())
+        {
+            <div class="stb-card text-center py-5">
+                <i class="bi bi-house-add display-4 text-stb"></i>
+                <h2 class="h4 fw-semibold mt-3">You haven't applied yet</h2>
+                <p class="text-muted">Earn money by sharing your place with travellers on Staybnb.</p>
+                <a asp-action="Apply" class="btn btn-stb btn-lg mt-2">Become a Host</a>
+            </div>
+        }
+        else
+        {
+            foreach (var application in Model)
+            {
+                var cover = application.Property.Images.OrderByDescending(i => i.IsCover).FirstOrDefault();
+                var statusCss = "stb-badge-" + application.Status.ToString().ToLowerInvariant();
+
+                <div class="stb-card mb-3">
+                    <div class="row g-3 align-items-center">
+                        <div class="col-md-3">
+                            @if (cover != null)
+                            {
+                                <img src="@cover.ImageUrl" alt="@application.Property.Title" class="img-fluid rounded-3 w-100" style="aspect-ratio:4/3;object-fit:cover" />
+                            }
+                        </div>
+                        <div class="col-md-9">
+                            <div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
+                                <div>
+                                    <h2 class="h5 fw-semibold mb-1">@application.Property.Title</h2>
+                                    <div class="text-muted small mb-2">
+                                        <i class="bi bi-geo-alt"></i> @application.Property.City
+                                        &middot; @application.Property.PropertyType
+                                        &middot; R @application.Property.PricePerNight.ToString("N2") / night
+                                    </div>
+                                </div>
+                                <span class="stb-badge @statusCss">@application.Status</span>
+                            </div>
+
+                            <div class="small text-muted">
+                                @(application.IsAdditionalProperty ? "Additional property" : "Host application")
+                                &middot; submitted @application.AppliedAt.ToLocalTime().ToString("dd MMM yyyy, HH:mm")
+                                @if (application.ReviewedAt.HasValue)
+                                {
+                                    <span>&middot; reviewed @application.ReviewedAt.Value.ToLocalTime().ToString("dd MMM yyyy")</span>
+                                }
+                            </div>
+
+                            @switch (application.Status)
+                            {
+                                case ApplicationStatus.Pending:
+                                    <div class="alert alert-warning small mt-3 mb-0">
+                                        <i class="bi bi-hourglass-split"></i>
+                                        Your application is being reviewed by an administrator. You'll get a notification as soon as it's decided.
+                                    </div>
+                                    break;
+
+                                case ApplicationStatus.Approved:
+                                    <div class="alert alert-success small mt-3 mb-0">
+                                        <i class="bi bi-check-circle"></i>
+                                        Approved - this listing is live on Staybnb.
+                                        @if (!string.IsNullOrWhiteSpace(application.AdminNotes))
+                                        {
+                                            <div class="mt-1"><strong>Note from the admin:</strong> @application.AdminNotes</div>
+                                        }
+                                    </div>
+                                    break;
+
+                                case ApplicationStatus.Rejected:
+                                    <div class="alert alert-danger small mt-3 mb-0">
+                                        <i class="bi bi-x-circle"></i>
+                                        <strong>Not approved.</strong> @application.AdminNotes
+                                        @if (canApply)
+                                        {
+                                            <div class="mt-2"><a asp-action="Apply" class="fw-semibold text-danger">Fix and apply again &rarr;</a></div>
+                                        }
+                                    </div>
+                                    break;
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>

@@ -1,0 +1,189 @@
+@using Staybnb.Models.Constants
+@using Staybnb.Models.Enums
+@model Staybnb.Models.ViewModels.Admin.ReviewApplicationViewModel
+@{
+    var app = Model.Application;
+    var property = app.Property;
+    var applicant = app.Applicant;
+    var images = property.Images.OrderByDescending(i => i.IsCover).ThenBy(i => i.Id).ToList();
+    ViewData["Title"] = $"Review: {property.Title}";
+    var isPending = app.Status == ApplicationStatus.Pending;
+}
+
+
+<div class="my-4">
+    <a asp-action="HostRequests" class="text-dark text-decoration-none small fw-semibold">
+        <i class="bi bi-chevron-left"></i> Back to Host Requests
+    </a>
+
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mt-2 mb-3">
+        <div>
+            <h1 class="h3 fw-bold mb-1">@property.Title</h1>
+            <div class="text-muted">
+                <i class="bi bi-geo-alt"></i> @property.Address, @property.City
+                &middot; @(app.IsAdditionalProperty ? "Additional property" : "New host application")
+                &middot; Application #@app.Id
+            </div>
+        </div>
+        <span class="stb-badge stb-badge-@app.Status.ToString().ToLowerInvariant() fs-6">@app.Status</span>
+    </div>
+
+    @* ---------- Photos ---------- *@
+    @if (images.Any())
+    {
+        <div class="stb-gallery mb-4">
+            @for (var i = 0; i < Math.Min(images.Count, 5); i++)
+            {
+                <a href="@images[i].ImageUrl" target="_blank" class="@(i == 0 ? "stb-gallery-main" : "")">
+                    <img src="@images[i].ImageUrl" alt="Photo @(i + 1) of @property.Title" />
+                </a>
+            }
+        </div>
+        if (images.Count > 5)
+        {
+            <p class="small text-muted">
+                +@(images.Count - 5) more photo(s):
+                @for (var i = 5; i < images.Count; i++)
+                {
+                    <a href="@images[i].ImageUrl" target="_blank">photo @(i + 1)</a>
+                }
+            </p>
+        }
+    }
+    else
+    {
+        <div class="alert alert-danger">This application has no photos and should be rejected.</div>
+    }
+
+    <div class="row g-4">
+        @* ---------- Property details ---------- *@
+        <div class="col-lg-7">
+            <div class="stb-card mb-4">
+                <h2 class="h5 fw-semibold">
+                    @property.PropertyType hosted by @applicant.FirstName
+                </h2>
+                <p class="text-muted mb-3">
+                    @property.MaxGuests guest(s) &middot; @property.Bedrooms bedroom(s) &middot; @property.Beds bed(s) &middot; @property.Bathrooms bathroom(s)
+                </p>
+                <hr />
+                <h3 class="h6 fw-semibold">Description</h3>
+                <p style="white-space: pre-line">@property.Description</p>
+                <hr />
+                <h3 class="h6 fw-semibold">Amenities</h3>
+                @if (property.Amenities.Any())
+                {
+                    <div class="row g-2">
+                        @foreach (var amenity in property.Amenities.OrderBy(a => a.Name))
+                        {
+                            <div class="col-6"><i class="bi @amenity.IconClass me-2"></i>@amenity.Name</div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted mb-0">No amenities selected.</p>
+                }
+            </div>
+
+            <div class="stb-card">
+                <h2 class="h5 fw-semibold mb-3">Pricing</h2>
+                <div class="d-flex justify-content-between"><span>Price per night</span><strong>R @property.PricePerNight.ToString("N2")</strong></div>
+                <div class="d-flex justify-content-between"><span>Cleaning fee</span><strong>R @property.CleaningFee.ToString("N2")</strong></div>
+            </div>
+        </div>
+
+        @* ---------- Applicant + decision ---------- *@
+        <div class="col-lg-5">
+            <div class="stb-card mb-4">
+                <h2 class="h5 fw-semibold mb-3">Applicant</h2>
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <span class="stb-avatar" style="width:56px;height:56px;font-size:1.1rem">
+                        @($"{applicant.FirstName.FirstOrDefault()}{applicant.LastName.FirstOrDefault()}".ToUpper())
+                    </span>
+                    <div>
+                        <div class="fw-semibold">@applicant.FullName</div>
+                        <div class="small text-muted">@applicant.Email</div>
+                        @if (!string.IsNullOrWhiteSpace(applicant.PhoneNumber))
+                        {
+                            <div class="small text-muted">@applicant.PhoneNumber</div>
+                        }
+                    </div>
+                </div>
+                <dl class="row small mb-0">
+                    <dt class="col-6">Member since</dt>
+                    <dd class="col-6">@applicant.CreatedAt.ToLocalTime().ToString("dd MMM yyyy")</dd>
+                    <dt class="col-6">Current role(s)</dt>
+                    <dd class="col-6">
+                        @foreach (var role in Model.ApplicantRoles)
+                        {
+                            <span class="badge text-bg-dark">@role</span>
+                        }
+                    </dd>
+                    <dt class="col-6">Live listings</dt>
+                    <dd class="col-6">@Model.ApplicantActiveListings</dd>
+                    <dt class="col-6">Submitted</dt>
+                    <dd class="col-6">@app.AppliedAt.ToLocalTime().ToString("dd MMM yyyy, HH:mm")</dd>
+                </dl>
+                <a asp-controller="Messages" asp-action="Conversation" asp-route-userId="@applicant.Id" asp-route-propertyId="@property.Id"
+                   class="btn btn-sm btn-outline-stb mt-3"><i class="bi bi-chat"></i> Message applicant</a>
+            </div>
+
+            @if (isPending)
+            {
+                <div class="stb-card mb-3">
+                    <h2 class="h5 fw-semibold">Approve</h2>
+                    <p class="small text-muted">
+                        Approving will:
+                        <br />&bull; make this property <strong>active</strong> in the guest gallery
+                        @if (Model.ApplicantRoles.Contains(Roles.Guest))
+                        {
+                            <span><br />&bull; <strong>add</strong> the <strong>Host</strong> role and <strong>remove</strong> the <strong>Guest</strong> role</span>
+                        }
+                        <br />&bull; notify the applicant and record it in the activity log
+                    </p>
+                    <form asp-action="ApproveApplication" asp-route-id="@app.Id" method="post">
+                        <label for="adminNotes" class="form-label small fw-semibold">Note to the applicant (optional)</label>
+                        <textarea id="adminNotes" name="adminNotes" class="form-control mb-3" rows="2" maxlength="500"></textarea>
+                        <button type="submit" class="btn btn-success w-100 fw-semibold">
+                            <i class="bi bi-check-lg"></i> Approve application
+                        </button>
+                    </form>
+                </div>
+
+                <div class="stb-card">
+                    <h2 class="h5 fw-semibold">Reject</h2>
+                    <form asp-action="RejectApplication" asp-route-id="@app.Id" method="post"
+                          onsubmit="return confirm('Reject this application? The applicant will be notified.');">
+                        <label for="reason" class="form-label small fw-semibold">Reason (shown to the applicant) <span class="text-danger">*</span></label>
+                        <textarea id="reason" name="reason" class="form-control mb-3" rows="3" maxlength="500" required
+                                  placeholder="e.g. The photos are too dark - please upload clearer photos of the bedrooms."></textarea>
+                        <button type="submit" class="btn btn-outline-danger w-100 fw-semibold">
+                            <i class="bi bi-x-lg"></i> Reject application
+                        </button>
+                    </form>
+                </div>
+            }
+            else
+            {
+                <div class="stb-card">
+                    <h2 class="h5 fw-semibold">Decision</h2>
+                    <p class="mb-1">
+                        <strong>@app.Status</strong>
+                        @if (app.ReviewedAt.HasValue)
+                        {
+                            <span>on @app.ReviewedAt.Value.ToLocalTime().ToString("dd MMM yyyy, HH:mm")</span>
+                        }
+                        @if (app.ReviewedBy != null)
+                        {
+                            <span>by @app.ReviewedBy.FullName</span>
+                        }
+                    </p>
+                    @if (!string.IsNullOrWhiteSpace(app.AdminNotes))
+                    {
+                        <p class="small text-muted mb-0"><strong>Notes:</strong> @app.AdminNotes</p>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>

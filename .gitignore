@@ -361,3 +361,7 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# Staybnb runtime uploads (property photos + private guest ID documents)
+wwwroot/uploads/
+App_Data/

@@ -1,0 +1,75 @@
+@model Staybnb.Models.ViewModels.Guest.BookingConfirmViewModel
+@{
+    ViewData["Title"] = "Request to book";
+    var p = Model.Property!;
+    var price = Model.Price!;
+}
+
+<div class="py-4">
+    <a asp-controller="Properties" asp-action="View" asp-route-id="@p.Id"
+       asp-route-checkIn="@Model.CheckIn.ToString("yyyy-MM-dd")" asp-route-checkOut="@Model.CheckOut.ToString("yyyy-MM-dd")" asp-route-guests="@Model.Guests"
+       class="text-dark text-decoration-none fw-semibold"><i class="bi bi-chevron-left"></i> Back to listing</a>
+    <h1 class="h3 fw-bold mt-2 mb-4">Request to book</h1>
+
+    <div class="row g-5">
+        <div class="col-lg-7">
+            @if (Model.Problem != null)
+            {
+                <div class="alert alert-danger"><i class="bi bi-exclamation-triangle"></i> @Model.Problem</div>
+            }
+
+            <h2 class="h5 fw-semibold">Your trip</h2>
+            <div class="d-flex justify-content-between py-3 border-bottom">
+                <div><div class="fw-semibold">Dates</div><div>@Model.CheckIn.ToString("ddd, dd MMM yyyy") &rarr; @Model.CheckOut.ToString("ddd, dd MMM yyyy")</div></div>
+            </div>
+            <div class="d-flex justify-content-between py-3 border-bottom mb-4">
+                <div><div class="fw-semibold">Guests</div><div>@Model.Guests guest(s)</div></div>
+            </div>
+
+            <form asp-action="Create" method="post">
+                <input type="hidden" asp-for="PropertyId" />
+                <input type="hidden" name="CheckIn" value="@Model.CheckIn.ToString("yyyy-MM-dd")" />
+                <input type="hidden" name="CheckOut" value="@Model.CheckOut.ToString("yyyy-MM-dd")" />
+                <input type="hidden" asp-for="Guests" />
+
+                <h2 class="h5 fw-semibold">Message the Host</h2>
+                <p class="small text-muted">Let the Host know a little about your trip (optional).</p>
+                <textarea asp-for="GuestMessage" class="form-control mb-1" rows="4" maxlength="500"
+                          placeholder="Hi! We're visiting for a family holiday and would love to stay at your place."></textarea>
+                <span asp-validation-for="GuestMessage" class="text-danger small"></span>
+
+                <div class="border-top pt-4 mt-4">
+                    <h2 class="h5 fw-semibold">Before you book</h2>
+                    <ul class="small text-muted ps-3">
+                        <li>Your booking is a <strong>request</strong>: the Host has to approve it.</li>
+                        <li>Payment is only taken once the Host approves (simulated in this project).</li>
+                        <li>After approval you'll complete online check-in and upload your ID or passport.</li>
+                    </ul>
+                    <button type="submit" class="btn btn-stb btn-lg px-5" disabled="@(Model.Problem != null)">Request to book</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="stb-booking-box">
+                <div class="d-flex gap-3 pb-3 border-bottom">
+                    @if (Model.CoverImageUrl != null)
+                    {
+                        <img src="@Model.CoverImageUrl" alt="" style="width:110px;height:95px;object-fit:cover" class="rounded-3" />
+                    }
+                    <div>
+                        <div class="small text-muted">@p.PropertyType</div>
+                        <div class="fw-semibold">@p.Title</div>
+                        <div class="small text-muted">@p.City</div>
+                    </div>
+                </div>
+                <h3 class="h5 fw-semibold mt-3">Price details</h3>
+                <div class="d-flex justify-content-between mb-2"><span>R @price.PricePerNight.ToString("N2") x @price.Nights night(s)</span><span>R @price.Subtotal.ToString("N2")</span></div>
+                <div class="d-flex justify-content-between mb-2"><span>Cleaning fee</span><span>R @price.CleaningFee.ToString("N2")</span></div>
+                <div class="d-flex justify-content-between mb-2"><span>Service fee (@((price.ServiceFeePercentage * 100).ToString("0"))%)</span><span>R @price.ServiceFee.ToString("N2")</span></div>
+                <hr />
+                <div class="d-flex justify-content-between fw-bold"><span>Total (ZAR)</span><span>R @price.Total.ToString("N2")</span></div>
+            </div>
+        </div>
+    </div>
+</div>
