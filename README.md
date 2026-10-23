@@ -189,4 +189,4 @@ Settings in `appsettings.json`:
 
 ## Author
 Dihan Visagie
-Github: 
+Github: https://github.com/Scorpionstriker/Staybnb
