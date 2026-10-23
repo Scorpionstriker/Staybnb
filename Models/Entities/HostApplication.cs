@@ -18,16 +18,16 @@ namespace Staybnb.Models.Entities
         /// <summary>True when an existing Host submits another property for approval.</summary>
         public bool IsAdditionalProperty { get; set; }
 
-        // ---------- Applicant ----------
+        // Applicant
         [Required]
         public string ApplicationUserId { get; set; } = string.Empty;
         public ApplicationUser Applicant { get; set; } = null!;
 
-        // ---------- The property being applied for ----------
+        // The property being applied for
         public int PropertyId { get; set; }
         public HostProperty Property { get; set; } = null!;
 
-        // ---------- Admin review (filled in on approve / reject) ----------
+        // Admin review (filled in on approve / reject)
         public DateTime? ReviewedAt { get; set; }
 
         public string? ReviewedById { get; set; }
