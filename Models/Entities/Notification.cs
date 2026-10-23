@@ -18,7 +18,7 @@ namespace Staybnb.Models.Entities
 
         public NotificationType Type { get; set; } = NotificationType.General;
 
-        /// <summary>Read/Unread status - marked in the rubric, so it must update in the database.</summary>
+        /// <summary>Set to true once the user has opened the notification.</summary>
         public bool IsRead { get; set; }
 
         public DateTime? ReadAt { get; set; }

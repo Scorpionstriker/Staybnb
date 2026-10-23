@@ -58,12 +58,12 @@ namespace Staybnb.Models.Entities
 
         public DateTime? UpdatedAt { get; set; }
 
-        // ---------- Foreign key: the Host who owns it ----------
+        // Foreign key: the Host who owns it
         [Required]
         public string HostId { get; set; } = string.Empty;
         public ApplicationUser Host { get; set; } = null!;
 
-        // ---------- Navigation properties ----------
+        // Navigation properties
         public ICollection<PropertyImage> Images { get; set; } = new List<PropertyImage>();
 
         /// <summary>Many-to-many: EF Core creates the AmenityHostProperty join table.</summary>

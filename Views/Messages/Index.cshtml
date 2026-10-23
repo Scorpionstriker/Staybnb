@@ -11,7 +11,7 @@
 
 <div class="@(User.IsInRole("Guest") ? "py-4" : "")">
     <div class="stb-inbox">
-        @* ================= Conversation list ================= *@
+        @* Conversation list *@
         <aside class="stb-inbox-list @(active != null ? "d-none d-md-flex" : "d-flex")">
             <div class="p-3 border-bottom">
                 <h1 class="h5 fw-bold mb-2">Messages</h1>
@@ -55,7 +55,7 @@
             </div>
         </aside>
 
-        @* ================= Open conversation ================= *@
+        @* Open conversation *@
         <section class="stb-inbox-thread @(active == null ? "d-none d-md-flex" : "d-flex")">
             @if (active == null)
             {

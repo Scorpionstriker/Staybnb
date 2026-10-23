@@ -59,9 +59,7 @@ namespace Staybnb.Controllers
         /// <summary>Host's earnings for a booking = what the guest paid minus Staybnb's service fee.</summary>
         private static decimal HostPayout(Booking b) => b.TotalPrice - b.ServiceFee;
 
-        // =====================================================================
-        // DASHBOARD
-        // =====================================================================
+        // Dashboard
 
         [HttpGet]
         public IActionResult Index() => RedirectToAction(nameof(Dashboard));
@@ -142,9 +140,7 @@ namespace Staybnb.Controllers
             return View(model);
         }
 
-        // =====================================================================
-        // MY PROPERTIES
-        // =====================================================================
+        // My properties
 
         [HttpGet]
         public async Task<IActionResult> Properties()
@@ -221,9 +217,7 @@ namespace Staybnb.Controllers
             return RedirectToAction(nameof(Properties));
         }
 
-        // =====================================================================
-        // EDIT PROPERTY
-        // =====================================================================
+        // Edit property
 
         [HttpGet]
         public async Task<IActionResult> EditProperty(int id)
@@ -288,7 +282,7 @@ namespace Staybnb.Controllers
                 return View(model);
             }
 
-            // ---------- Details ----------
+            // Details
             property.Title = model.Title.Trim();
             property.Description = model.Description.Trim();
             property.PropertyType = model.PropertyType;
@@ -303,14 +297,14 @@ namespace Staybnb.Controllers
             property.CleaningFee = model.CleaningFee;
             property.UpdatedAt = DateTime.UtcNow;
 
-            // ---------- Amenities (many-to-many) ----------
+            // Amenities (many-to-many)
             var selectedIds = model.SelectedAmenityIds?.Distinct().ToList() ?? new List<int>();
             property.Amenities.Clear();
             var amenities = await _context.Amenities.Where(a => selectedIds.Contains(a.Id)).ToListAsync();
             foreach (var amenity in amenities)
                 property.Amenities.Add(amenity);
 
-            // ---------- New photos ----------
+            // New photos
             var hasCover = property.Images.Any(i => i.IsCover);
             foreach (var file in newImages)
             {
@@ -395,9 +389,7 @@ namespace Staybnb.Controllers
             model.MaxImages = _settings.MaxImagesPerProperty;
         }
 
-        // =====================================================================
-        // BOOKING REQUESTS
-        // =====================================================================
+        // Booking requests
 
         // GET: /Host/BookingRequests?filter=pending&propertyId=3
         [HttpGet]
@@ -477,9 +469,7 @@ namespace Staybnb.Controllers
             return RedirectToAction(nameof(BookingRequests), new { filter = returnFilter ?? "checkedin" });
         }
 
-        // =====================================================================
-        // CHECK-IN PROCESS (rules + required documents per property)
-        // =====================================================================
+        // Check-in process (rules + required documents per property)
 
         [HttpGet]
         public async Task<IActionResult> ConfigureCheckIn(int propertyId)
@@ -582,9 +572,7 @@ namespace Staybnb.Controllers
                 .Select(p => new HostPropertyOption { Id = p.Id, Title = p.Title })
                 .ToListAsync();
 
-        // =====================================================================
-        // GUEST CHECK-INS (verify documents)
-        // =====================================================================
+        // Guest check-ins (verify documents)
 
         [HttpGet]
         public async Task<IActionResult> CheckIns()
@@ -658,9 +646,7 @@ namespace Staybnb.Controllers
                 : RedirectToAction(nameof(ReviewCheckIn), new { id });
         }
 
-        // =====================================================================
-        // EARNINGS
-        // =====================================================================
+        // Earnings
 
         [HttpGet]
         public async Task<IActionResult> Earnings()
@@ -702,9 +688,7 @@ namespace Staybnb.Controllers
             return View(model);
         }
 
-        // =====================================================================
-        // REVIEWS
-        // =====================================================================
+        // Reviews
 
         [HttpGet]
         public async Task<IActionResult> Reviews()

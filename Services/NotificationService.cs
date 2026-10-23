@@ -23,10 +23,7 @@ namespace Staybnb.Services
             _logger = logger;
         }
 
-        // ---------------------------------------------------------------------
-        // CREATE
-        // ---------------------------------------------------------------------
-
+        // Create
         public async Task CreateAsync(string userId, string title, string message, NotificationType type, string? linkUrl = null)
         {
             if (string.IsNullOrWhiteSpace(userId)) return;
@@ -44,10 +41,7 @@ namespace Staybnb.Services
             await SaveSafelyAsync(notifications);
         }
 
-        // ---------------------------------------------------------------------
-        // READ
-        // ---------------------------------------------------------------------
-
+        // Read
         public Task<int> GetUnreadCountAsync(string userId) =>
             _context.Notifications.CountAsync(n => n.UserId == userId && !n.IsRead);
 
@@ -64,10 +58,7 @@ namespace Staybnb.Services
         public Task<Notification?> GetAsync(int id, string userId) =>
             _context.Notifications.FirstOrDefaultAsync(n => n.Id == id && n.UserId == userId);
 
-        // ---------------------------------------------------------------------
-        // UPDATE (Read / Unread is marked in the rubric - these write to the database)
-        // ---------------------------------------------------------------------
-
+        // Read / unread
         public async Task<bool> MarkAsReadAsync(int id, string userId)
         {
             var notification = await GetAsync(id, userId);
@@ -114,10 +105,7 @@ namespace Staybnb.Services
                     .SetProperty(n => n.ReadAt, now));
         }
 
-        // ---------------------------------------------------------------------
-        // DELETE
-        // ---------------------------------------------------------------------
-
+        // Delete
         public async Task<bool> DeleteAsync(int id, string userId)
         {
             var notification = await GetAsync(id, userId);
@@ -128,10 +116,7 @@ namespace Staybnb.Services
             return true;
         }
 
-        // ---------------------------------------------------------------------
-        // HELPERS
-        // ---------------------------------------------------------------------
-
+        // Helpers
         private static Notification Build(string userId, string title, string message, NotificationType type, string? linkUrl) => new()
         {
             UserId = userId,

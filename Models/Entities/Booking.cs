@@ -51,7 +51,7 @@ namespace Staybnb.Models.Entities
         [NotMapped]
         public int Nights => (CheckOutDate.Date - CheckInDate.Date).Days;
 
-        // ---------- Foreign keys ----------
+        // Foreign keys
         public int PropertyId { get; set; }
         public HostProperty Property { get; set; } = null!;
 
@@ -59,7 +59,7 @@ namespace Staybnb.Models.Entities
         public string GuestId { get; set; } = string.Empty;
         public ApplicationUser Guest { get; set; } = null!;
 
-        // ---------- One-to-one children ----------
+        // One-to-one children
         public Payment? Payment { get; set; }
 
         public GuestCheckIn? GuestCheckIn { get; set; }

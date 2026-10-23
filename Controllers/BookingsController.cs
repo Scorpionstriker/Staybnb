@@ -37,9 +37,7 @@ namespace Staybnb.Controllers
 
         private string GuestId => _userManager.GetUserId(User)!;
 
-        // =====================================================================
-        // REQUEST TO BOOK
-        // =====================================================================
+        // Request to book
 
         // GET: /Bookings/Confirm?propertyId=5&checkIn=2026-01-28&checkOut=2026-01-30&guests=2
         [HttpGet]
@@ -108,9 +106,7 @@ namespace Staybnb.Controllers
             return true;
         }
 
-        // =====================================================================
-        // MY TRIPS
-        // =====================================================================
+        // My trips
 
         // GET: /Bookings?filter=upcoming
         [HttpGet]
@@ -150,9 +146,7 @@ namespace Staybnb.Controllers
             });
         }
 
-        // =====================================================================
-        // BOOKING DETAILS
-        // =====================================================================
+        // Booking details
 
         // GET: /Bookings/Details/12
         [HttpGet]
@@ -196,9 +190,7 @@ namespace Staybnb.Controllers
             return RedirectToAction(nameof(Details), new { id });
         }
 
-        // =====================================================================
-        // REVIEW (after a completed stay)
-        // =====================================================================
+        // Review (after a completed stay)
 
         // POST: /Bookings/AddReview
         [HttpPost]

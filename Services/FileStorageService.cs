@@ -36,9 +36,7 @@ namespace Staybnb.Services
         /// <summary>App_Data/PrivateUploads/documents (outside wwwroot, so never served directly)</summary>
         private string PrivateDocumentsRoot => Path.Combine(_env.ContentRootPath, "App_Data", "PrivateUploads", "documents");
 
-        // =====================================================================
-        // VALIDATION
-        // =====================================================================
+        // Validation
 
         public FileValidationResult ValidateImage(IFormFile? file) =>
             Validate(file, ImageExtensions, _settings.MaxImageSizeMb, "image", "JPG, PNG or WEBP");
@@ -86,9 +84,7 @@ namespace Staybnb.Services
             };
         }
 
-        // =====================================================================
-        // PUBLIC IMAGES
-        // =====================================================================
+        // Public images
 
         public async Task<string> SaveImageAsync(IFormFile file, string folder = ImageFolders.Properties)
         {
@@ -138,9 +134,7 @@ namespace Staybnb.Services
             }
         }
 
-        // =====================================================================
-        // PRIVATE GUEST DOCUMENTS
-        // =====================================================================
+        // Private guest documents
 
         public async Task<string> SaveGuestDocumentAsync(IFormFile file)
         {

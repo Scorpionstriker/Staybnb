@@ -1,10 +1,8 @@
-// =====================================================================
 // Booking box on the property details page.
 // Calls the JSON API  GET /api/properties/{id}/quote  whenever the dates
 // or number of guests change, and shows the live price breakdown:
-//   Total = (PricePerNight x Nights) + CleaningFee + ServiceFee
+// Total = (PricePerNight x Nights) + CleaningFee + ServiceFee
 // The server recalculates the price again when the booking is created.
-// =====================================================================
 (function () {
     "use strict";
 
@@ -37,7 +35,7 @@
         return isoDate(d);
     }
 
-    // ---------- Guests counter ----------
+    // Guests counter
     function setGuests(n) {
         n = Math.max(1, Math.min(maxGuests, n));
         guestsInput.value = n;
@@ -50,7 +48,7 @@
     minus.addEventListener("click", () => { setGuests(parseInt(guestsInput.value, 10) - 1); requestQuote(); });
     plus.addEventListener("click", () => { setGuests(parseInt(guestsInput.value, 10) + 1); requestQuote(); });
 
-    // ---------- Dates ----------
+    // Dates
     checkIn.addEventListener("change", () => {
         if (!checkIn.value) return;
         checkOut.min = addDays(checkIn.value, 1);
@@ -61,7 +59,7 @@
     });
     checkOut.addEventListener("change", requestQuote);
 
-    // ---------- Live quote from the API ----------
+    // Live quote from the API
     let latestRequest = 0;
 
     async function requestQuote() {

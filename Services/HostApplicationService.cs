@@ -40,9 +40,7 @@ namespace Staybnb.Services
             _logger = logger;
         }
 
-        // =====================================================================
-        // QUERIES
-        // =====================================================================
+        // Queries
 
         public Task<HostApplication?> GetPendingForGuestAsync(string userId) =>
             _context.HostApplications
@@ -59,9 +57,7 @@ namespace Staybnb.Services
                 .OrderByDescending(a => a.AppliedAt)
                 .ToListAsync();
 
-        // =====================================================================
-        // SUBMIT
-        // =====================================================================
+        // Submit
 
         public async Task<ServiceResult<HostApplication>> SubmitAsync(string userId, HostApplicationViewModel model)
         {
@@ -77,7 +73,7 @@ namespace Staybnb.Services
             if (isGuest && await GetPendingForGuestAsync(userId) != null)
                 return ServiceResult<HostApplication>.Fail("You already have an application waiting for review.");
 
-            // ---------- REQUIREMENT: at least one image, or the application is incomplete ----------
+            // Need at least one photo
             var images = (model.Images ?? new List<IFormFile>()).Where(f => f != null && f.Length > 0).ToList();
             if (images.Count == 0)
                 return ServiceResult<HostApplication>.Fail("Your application is incomplete: please add at least one photo of your place.");
@@ -92,7 +88,7 @@ namespace Staybnb.Services
                     return ServiceResult<HostApplication>.Fail(validation.Error!);
             }
 
-            // ---------- Save the photos first; if anything fails later, delete them again ----------
+            // Save the photos first; if anything fails later, delete them again
             var savedUrls = new List<string>();
             try
             {
@@ -150,7 +146,7 @@ namespace Staybnb.Services
                 _context.HostApplications.Add(application);
                 await _context.SaveChangesAsync();
 
-                // ---------- Log + notify ----------
+                // Log + notify
                 var action = isHost ? ActivityActions.AdditionalPropertyApplicationSubmitted : ActivityActions.HostApplicationSubmitted;
                 await _activityLog.LogAsync(userId, action, ActivityType.HostApplication,
                     $"{user.FullName} submitted application #{application.Id} for '{property.Title}' in {property.City} with {savedUrls.Count} photo(s).");
@@ -179,9 +175,7 @@ namespace Staybnb.Services
             }
         }
 
-        // =====================================================================
-        // APPROVE  (the Guest -> Host transition)
-        // =====================================================================
+        // Approve  (the Guest -> Host transition)
 
         public async Task<ServiceResult> ApproveAsync(int applicationId, string adminId, string? adminNotes)
         {
@@ -204,7 +198,7 @@ namespace Staybnb.Services
             await using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                // ---------- REQUIREMENT: add Host, remove Guest ----------
+                // Swap roles: add Host, drop Guest
                 if (!await _userManager.IsInRoleAsync(user, Roles.Host))
                 {
                     var addResult = await _userManager.AddToRoleAsync(user, Roles.Host);
@@ -228,7 +222,7 @@ namespace Staybnb.Services
                     roleSwapped = true;
                 }
 
-                // ---------- Application + property ----------
+                // Application + property
                 application.Status = ApplicationStatus.Approved;
                 application.ReviewedAt = DateTime.UtcNow;
                 application.ReviewedById = adminId;
@@ -247,7 +241,7 @@ namespace Staybnb.Services
                 return ServiceResult.Fail("Something went wrong while approving the application. No changes were made.");
             }
 
-            // ---------- Log + notify (after the commit) ----------
+            // Log + notify (after the commit)
             await _activityLog.LogAsync(adminId, ActivityActions.HostApplicationApproved, ActivityType.HostApplication,
                 $"Application #{application.Id} for '{application.Property.Title}' by {user.FullName} approved. Property is now active.");
 
@@ -270,9 +264,7 @@ namespace Staybnb.Services
                 : $"Application approved. '{application.Property.Title}' is now live.");
         }
 
-        // =====================================================================
-        // REJECT
-        // =====================================================================
+        // Reject
 
         public async Task<ServiceResult> RejectAsync(int applicationId, string adminId, string reason)
         {
@@ -310,9 +302,7 @@ namespace Staybnb.Services
             return ServiceResult.Ok("Application rejected and the applicant has been notified.");
         }
 
-        // =====================================================================
-        // HELPERS
-        // =====================================================================
+        // Helpers
 
         /// <summary>"  cape town " -> "Cape Town", so the city filter groups listings correctly.</summary>
         private static string NormaliseCity(string city)

@@ -39,7 +39,7 @@
                 <i class="bi bi-house-heart-fill"></i><span class="d-none d-md-inline">staybnb</span>
             </a>
 
-            @* ---------- Search pill (opens the full search bar) ---------- *@
+            @* Search pill (opens the full search bar) *@
             <button class="stb-search-pill" type="button" data-bs-toggle="collapse" data-bs-target="#searchPanel" aria-expanded="false" aria-controls="searchPanel">
                 <span class="fw-semibold">@(string.IsNullOrEmpty(city) ? "Anywhere" : city)</span>
                 <span class="stb-divider"></span>
@@ -159,7 +159,7 @@
             </nav>
         </div>
 
-        @* ---------- Full search bar ---------- *@
+        @* Full search bar *@
         <div class="collapse border-top" id="searchPanel">
             <form asp-controller="Properties" asp-action="Index" method="get" class="container-xl py-3">
                 <div class="stb-search-bar row g-2 align-items-end">

@@ -4,7 +4,7 @@
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
 
-@* Part 4 version: role-based links. Replaced by the Airbnb-style user menu when the layouts are rebuilt. *@
+@* Older role-based nav links. Not used by the current layouts any more. *@
 <ul class="navbar-nav align-items-lg-center">
 @if (SignInManager.IsSignedIn(User))
 {

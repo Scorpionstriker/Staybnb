@@ -33,9 +33,7 @@ namespace Staybnb.Controllers
             _logger = logger;
         }
 
-        // =====================================================================
-        // REGISTER
-        // =====================================================================
+        // Register
 
         [HttpGet]
         [AllowAnonymous]
@@ -81,7 +79,7 @@ namespace Staybnb.Controllers
                 return View(model);
             }
 
-            // REQUIREMENT: all new registrants are automatically Guests
+            // Everyone starts out as a Guest
             var roleResult = await _userManager.AddToRoleAsync(user, Roles.Guest);
             if (!roleResult.Succeeded)
             {
@@ -100,9 +98,7 @@ namespace Staybnb.Controllers
             return RedirectToAction("Index", "Home");
         }
 
-        // =====================================================================
-        // LOGIN
-        // =====================================================================
+        // Login
 
         [HttpGet]
         [AllowAnonymous]
@@ -160,9 +156,7 @@ namespace Staybnb.Controllers
             return View(model);
         }
 
-        // =====================================================================
-        // LOGOUT
-        // =====================================================================
+        // Logout
 
         [HttpPost]
         [Authorize]
@@ -177,9 +171,7 @@ namespace Staybnb.Controllers
             return RedirectToAction("Index", "Home");
         }
 
-        // =====================================================================
-        // ACCESS DENIED (shown when a role tries to open another role's page)
-        // =====================================================================
+        // Access denied (shown when a role tries to open another role's page)
 
         [HttpGet]
         [AllowAnonymous]
@@ -189,15 +181,9 @@ namespace Staybnb.Controllers
             return View();
         }
 
-        // =====================================================================
-        // HELPERS
-        // =====================================================================
+        // Helpers
 
-        /// <summary>
-        /// Sends each role to its own "home" after login.
-        /// For now everyone goes to Home/Index; the Admin and Host dashboards
-        /// are switched on here when they are built in later parts.
-        /// </summary>
+        /// <summary>Sends each role to its own start page after login.</summary>
         private async Task<IActionResult> RedirectToRoleHomeAsync(ApplicationUser user)
         {
             var roles = await _userManager.GetRolesAsync(user);
@@ -208,7 +194,7 @@ namespace Staybnb.Controllers
             if (roles.Contains(Roles.Host))
                 return RedirectToAction("Dashboard", "Host");
 
-            return RedirectToAction("Index", "Home");        // Guests: later the property gallery
+            return RedirectToAction("Index", "Home");        // guests land on the property gallery
         }
     }
 }

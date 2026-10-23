@@ -3,9 +3,7 @@ using Staybnb.Models.Enums;
 
 namespace Staybnb.Models.ViewModels.Admin
 {
-    // =====================================================================
-    // DASHBOARD
-    // =====================================================================
+    // Dashboard
     public class AdminDashboardViewModel
     {
         public int TotalUsers { get; set; }
@@ -31,9 +29,7 @@ namespace Staybnb.Models.ViewModels.Admin
         public List<Booking> RecentBookings { get; set; } = new();
     }
 
-    // =====================================================================
-    // BOOKINGS + PROPERTIES OVERVIEW
-    // =====================================================================
+    // Bookings + properties overview
     public class AdminBookingsViewModel
     {
         public BookingStatus? Status { get; set; }
@@ -66,9 +62,7 @@ namespace Staybnb.Models.ViewModels.Admin
         public DateTime CreatedAt { get; set; }
     }
 
-    // =====================================================================
-    // SYSTEM AUDIT (ActivityLog)
-    // =====================================================================
+    // System audit (ActivityLog)
     public class ActivityLogsViewModel
     {
         public ActivityType? Type { get; set; }
@@ -81,9 +75,7 @@ namespace Staybnb.Models.ViewModels.Admin
         public List<ActivityLog> Logs { get; set; } = new();
     }
 
-    // =====================================================================
-    // USER MANAGEMENT (SuperAdmin)
-    // =====================================================================
+    // User management (SuperAdmin)
     public class UserManagementViewModel
     {
         /// <summary>all | guest | host | admin</summary>

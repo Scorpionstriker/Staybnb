@@ -67,7 +67,7 @@ namespace Staybnb.Controllers
         [RequestFormLimits(MultipartBodyLengthLimit = MaxUploadBytes)]
         public async Task<IActionResult> Apply(HostApplicationViewModel model)
         {
-            // REQUIREMENT: an application without an image is incomplete and cannot be submitted
+            // No photo = incomplete application, so don't let it through
             if (model.Images == null || !model.Images.Any(f => f != null && f.Length > 0))
             {
                 ModelState.AddModelError(nameof(model.Images),

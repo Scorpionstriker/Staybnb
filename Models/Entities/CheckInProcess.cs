@@ -27,8 +27,7 @@ namespace Staybnb.Models.Entities
 
         public ICollection<GuestCheckIn> GuestCheckIns { get; set; } = new List<GuestCheckIn>();
 
-        // ---------- Helpers (methods, so EF Core does not try to map them) ----------
-
+        // Helpers (methods, so EF Core does not try to map them)
         public List<CheckInStep> GetSteps()
         {
             if (string.IsNullOrWhiteSpace(StepsJson)) return new List<CheckInStep>();

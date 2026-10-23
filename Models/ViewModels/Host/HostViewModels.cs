@@ -5,9 +5,7 @@ using Staybnb.Models.Enums;
 
 namespace Staybnb.Models.ViewModels.Host
 {
-    // =====================================================================
-    // DASHBOARD
-    // =====================================================================
+    // Dashboard
     public class HostDashboardViewModel
     {
         public string HostFirstName { get; set; } = string.Empty;
@@ -36,9 +34,7 @@ namespace Staybnb.Models.ViewModels.Host
         public List<Booking> UpcomingStays { get; set; } = new();
     }
 
-    // =====================================================================
-    // MY PROPERTIES
-    // =====================================================================
+    // My properties
     public class HostPropertyListItem
     {
         public int Id { get; set; }
@@ -64,9 +60,7 @@ namespace Staybnb.Models.ViewModels.Host
         public bool CanToggle => ApplicationStatus is null or Enums.ApplicationStatus.Approved;
     }
 
-    // =====================================================================
-    // EDIT PROPERTY
-    // =====================================================================
+    // Edit property
     public class PropertyEditViewModel
     {
         public int Id { get; set; }
@@ -116,16 +110,14 @@ namespace Staybnb.Models.ViewModels.Host
         [Display(Name = "Add photos")]
         public List<IFormFile>? NewImages { get; set; }
 
-        // ---------- Display only ----------
+        // Display only
         [ValidateNever] public List<AmenityOption> AvailableAmenities { get; set; } = new();
         [ValidateNever] public List<PropertyImage> ExistingImages { get; set; } = new();
         [ValidateNever] public bool IsActive { get; set; }
         [ValidateNever] public int MaxImages { get; set; } = 10;
     }
 
-    // =====================================================================
-    // BOOKING REQUESTS
-    // =====================================================================
+    // Booking requests
     public class HostBookingsViewModel
     {
         /// <summary>pending | upcoming | checkedin | past | all</summary>
@@ -146,9 +138,7 @@ namespace Staybnb.Models.ViewModels.Host
         public string Title { get; set; } = string.Empty;
     }
 
-    // =====================================================================
-    // CHECK-IN PROCESS CONFIGURATION
-    // =====================================================================
+    // Check-in process configuration
     public class CheckInProcessViewModel
     {
         public int PropertyId { get; set; }
@@ -180,9 +170,7 @@ namespace Staybnb.Models.ViewModels.Host
         public string? DocumentType { get; set; }
     }
 
-    // =====================================================================
-    // CHECK-INS (document verification)
-    // =====================================================================
+    // Check-ins (document verification)
     public class HostCheckInsViewModel
     {
         public List<GuestCheckIn> AwaitingReview { get; set; } = new();
@@ -197,9 +185,7 @@ namespace Staybnb.Models.ViewModels.Host
         public bool AllDocumentsVerified { get; set; }
     }
 
-    // =====================================================================
-    // EARNINGS + REVIEWS
-    // =====================================================================
+    // Earnings + reviews
     public class HostEarningsViewModel
     {
         public decimal TotalEarnings { get; set; }

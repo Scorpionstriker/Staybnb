@@ -30,9 +30,7 @@ namespace Staybnb.Services
             _logger = logger;
         }
 
-        // =====================================================================
-        // PROMOTE: Guest -> Admin
-        // =====================================================================
+        // Promote: Guest -> Admin
         public async Task<ServiceResult> PromoteToAdminAsync(string userId, string superAdminId)
         {
             var user = await _userManager.FindByIdAsync(userId);
@@ -44,7 +42,7 @@ namespace Staybnb.Services
             if (roles.Contains(Roles.SuperAdmin) || roles.Contains(Roles.Admin))
                 return ServiceResult.Fail($"{user.FullName} is already an administrator.");
 
-            // REQUIREMENT: only existing Guests can be promoted
+            // Only Guests can be promoted
             if (!roles.Contains(Roles.Guest))
                 return ServiceResult.Fail($"Only Guests can be promoted. {user.FullName} is a {string.Join("/", roles)}.");
 
@@ -87,9 +85,7 @@ namespace Staybnb.Services
             return ServiceResult.Ok($"{user.FullName} is now an Admin.");
         }
 
-        // =====================================================================
-        // REVOKE: Admin -> Guest
-        // =====================================================================
+        // Revoke: Admin -> Guest
         public async Task<ServiceResult> RevokeAdminAsync(string userId, string superAdminId)
         {
             if (userId == superAdminId)

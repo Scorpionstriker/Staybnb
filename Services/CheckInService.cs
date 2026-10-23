@@ -38,9 +38,7 @@ namespace Staybnb.Services
                 .Include(c => c.Booking).ThenInclude(b => b.Property).ThenInclude(p => p.Images)
                 .Include(c => c.Booking).ThenInclude(b => b.Property).ThenInclude(p => p.Host);
 
-        // =====================================================================
-        // GUEST SIDE
-        // =====================================================================
+        // Guest side
 
         public Task<GuestCheckIn?> GetForGuestAsync(int bookingId, string guestId) =>
             CheckInsWithDetails().FirstOrDefaultAsync(c => c.BookingId == bookingId && c.Booking.GuestId == guestId);
@@ -153,7 +151,7 @@ namespace Staybnb.Services
                 return ServiceResult.Fail("Please tick the box to confirm this step.");
             }
 
-            // ---------- Move forward ----------
+            // Move forward
             var isLastStep = stepNumber >= steps.Max(s => s.StepNumber);
             if (!isLastStep)
             {
@@ -195,9 +193,7 @@ namespace Staybnb.Services
             return ServiceResult.Ok();
         }
 
-        // =====================================================================
-        // HOST SIDE
-        // =====================================================================
+        // Host side
 
         public Task<GuestCheckIn?> GetForHostAsync(int guestCheckInId, string hostId) =>
             CheckInsWithDetails().FirstOrDefaultAsync(c => c.Id == guestCheckInId && c.Booking.Property.HostId == hostId);
@@ -290,9 +286,7 @@ namespace Staybnb.Services
             return ServiceResult.Ok($"{checkIn.Booking.Guest.FullName} is checked in.");
         }
 
-        // =====================================================================
-        // SHARED
-        // =====================================================================
+        // Shared
 
         public Task<GuestDocument?> GetDocumentForViewerAsync(int documentId, string userId, bool isAdmin) =>
             _context.GuestDocuments
@@ -303,9 +297,7 @@ namespace Staybnb.Services
                      || d.GuestCheckIn.Booking.GuestId == userId
                      || d.GuestCheckIn.Booking.Property.HostId == userId));
 
-        // =====================================================================
-        // HELPERS
-        // =====================================================================
+        // Helpers
 
         private Task<GuestDocument?> LoadDocumentForHostAsync(int documentId, string hostId) =>
             _context.GuestDocuments

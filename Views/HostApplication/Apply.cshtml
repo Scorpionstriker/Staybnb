@@ -33,7 +33,7 @@
         <form asp-action="Apply" method="post" enctype="multipart/form-data" id="hostApplicationForm" novalidate>
             <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 
-            @* ================= 1. The place ================= *@
+            @* 1. The place *@
             <section class="stb-card mb-4">
                 <h2 class="stb-section-title"><span class="stb-step-number">1</span>Which of these best describes your place?</h2>
                 <p class="stb-section-subtitle">Guests can filter listings by property type.</p>
@@ -70,7 +70,7 @@
                 </div>
             </section>
 
-            @* ================= 2. Location ================= *@
+            @* 2. Location *@
             <section class="stb-card mb-4">
                 <h2 class="stb-section-title"><span class="stb-step-number">2</span>Where's your place located?</h2>
                 <p class="stb-section-subtitle">Your full address is only shared with guests after their booking is approved.</p>
@@ -101,7 +101,7 @@
                 </div>
             </section>
 
-            @* ================= 3. Rooms ================= *@
+            @* 3. Rooms *@
             <section class="stb-card mb-4">
                 <h2 class="stb-section-title"><span class="stb-step-number">3</span>Share some basics about your place</h2>
                 <p class="stb-section-subtitle">You can change these later.</p>
@@ -130,7 +130,7 @@
                 </div>
             </section>
 
-            @* ================= 4. Amenities ================= *@
+            @* 4. Amenities *@
             <section class="stb-card mb-4">
                 <h2 class="stb-section-title"><span class="stb-step-number">4</span>Tell guests what your place has to offer</h2>
                 <p class="stb-section-subtitle">Select all that apply.</p>
@@ -151,7 +151,7 @@
                 </div>
             </section>
 
-            @* ================= 5. Pricing ================= *@
+            @* 5. Pricing *@
             <section class="stb-card mb-4">
                 <h2 class="stb-section-title"><span class="stb-step-number">5</span>Set your price</h2>
                 <p class="stb-section-subtitle">Guests also pay a service fee on top of your nightly price.</p>
@@ -182,7 +182,7 @@
                 </div>
             </section>
 
-            @* ================= 6. Photos (required) ================= *@
+            @* 6. Photos (required) *@
             <section class="stb-card mb-4">
                 <h2 class="stb-section-title"><span class="stb-step-number">6</span>Add some photos of your place <span class="text-danger">*</span></h2>
                 <p class="stb-section-subtitle">
@@ -214,7 +214,7 @@
                 }
             </section>
 
-            @* ================= Confirm + submit ================= *@
+            @* Confirm + submit *@
             <section class="stb-card mb-4">
                 <div class="form-check">
                     <input asp-for="ConfirmAccuracy" class="form-check-input" />

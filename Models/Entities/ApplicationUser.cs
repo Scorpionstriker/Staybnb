@@ -24,8 +24,7 @@ namespace Staybnb.Models.Entities
         [NotMapped]
         public string FullName => $"{FirstName} {LastName}".Trim();
 
-        // ---------- Navigation properties ----------
-
+        // Navigation properties
         /// <summary>Properties this user hosts (only populated once they are a Host).</summary>
         public ICollection<HostProperty> Properties { get; set; } = new List<HostProperty>();
 

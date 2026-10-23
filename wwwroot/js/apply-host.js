@@ -1,9 +1,7 @@
-// =====================================================================
 // "Become a Host" form
-//  - photo picker with previews, remove buttons and drag & drop
-//  - blocks submission when no photo is selected (the server checks this too)
-//  - description character counter and example price
-// =====================================================================
+// - photo picker with previews, remove buttons and drag & drop
+// - blocks submission when no photo is selected (the server checks this too)
+// - description character counter and example price
 (function () {
     "use strict";
 
@@ -25,9 +23,7 @@
     /** The photos the user has picked so far (kept across several "browse" clicks). */
     let selectedFiles = [];
 
-    // ---------------------------------------------------------------
     // Photos
-    // ---------------------------------------------------------------
     function showError(message) {
         errorBox.textContent = message || "";
         dropzone.classList.toggle("is-invalid", !!message);
@@ -133,9 +129,7 @@
         if (e.dataTransfer && e.dataTransfer.files.length) addFiles(e.dataTransfer.files);
     });
 
-    // ---------------------------------------------------------------
     // Submit: an application without a photo is incomplete
-    // ---------------------------------------------------------------
     form.addEventListener("submit", e => {
         if (selectedFiles.length === 0) {
             e.preventDefault();
@@ -153,9 +147,7 @@
         submitButton.querySelector(".spinner-border").classList.remove("d-none");
     });
 
-    // ---------------------------------------------------------------
     // Description counter
-    // ---------------------------------------------------------------
     const description = document.getElementById("Description");
     const descriptionCount = document.getElementById("descriptionCount");
     if (description && descriptionCount) {
@@ -164,9 +156,7 @@
         updateCount();
     }
 
-    // ---------------------------------------------------------------
     // Example price: 2 nights + cleaning fee + 12% service fee
-    // ---------------------------------------------------------------
     const price = document.getElementById("PricePerNight");
     const cleaning = document.getElementById("CleaningFee");
     const example = document.getElementById("examplePrice");

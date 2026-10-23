@@ -13,7 +13,7 @@
         <div class="alert alert-warning"><i class="bi bi-eye-slash"></i> This listing is not live - only you (the Host) and administrators can see this preview.</div>
     }
 
-    @* ---------- Title row ---------- *@
+    @* Title row *@
     <div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-3">
         <div>
             <h1 class="h3 fw-bold mb-1">@p.Title</h1>
@@ -35,7 +35,7 @@
         }
     </div>
 
-    @* ---------- Photo gallery ---------- *@
+    @* Photo gallery *@
     <div class="stb-detail-gallery count-@Math.Min(images.Count, 5) mb-4">
         @for (var i = 0; i < images.Count; i++)
         {
@@ -46,7 +46,7 @@
     </div>
 
     <div class="row g-5">
-        @* ================= Left: details ================= *@
+        @* Left: details *@
         <div class="col-lg-7">
             <div class="d-flex justify-content-between align-items-center pb-4 border-bottom">
                 <div>
@@ -109,7 +109,7 @@
                 </div>
             }
 
-            @* ---------- Reviews ---------- *@
+            @* Reviews *@
             <div class="py-4 border-bottom">
                 <h3 class="h5 fw-semibold mb-3">
                     <i class="bi bi-star-fill"></i>
@@ -138,7 +138,7 @@
                 </div>
             </div>
 
-            @* ---------- Host ---------- *@
+            @* Host *@
             <div class="py-4">
                 <h3 class="h5 fw-semibold mb-3">Meet your Host</h3>
                 <div class="stb-card d-flex align-items-center gap-3">
@@ -159,7 +159,7 @@
             </div>
         </div>
 
-        @* ================= Right: booking box ================= *@
+        @* Right: booking box *@
         <div class="col-lg-5">
             <div class="stb-booking-box" id="bookingBox"
                  data-property-id="@p.Id"

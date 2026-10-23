@@ -3,9 +3,7 @@ using Staybnb.Models.Entities;
 
 namespace Staybnb.Models.ViewModels.Shared
 {
-    // =====================================================================
-    // MESSAGING
-    // =====================================================================
+    // Messaging
 
     /// <summary>One row in the inbox list (the latest message with one other person).</summary>
     public class ConversationSummary
@@ -53,9 +51,7 @@ namespace Staybnb.Models.ViewModels.Shared
         public string Content { get; set; } = string.Empty;
     }
 
-    // =====================================================================
-    // NOTIFICATIONS
-    // =====================================================================
+    // Notifications
     public class NotificationCenterViewModel
     {
         /// <summary>all | unread | read | today</summary>

@@ -48,7 +48,7 @@
             </a>
         }
 
-        @* ---------- Heart (wishlist) ---------- *@
+        @* Heart (wishlist) *@
         @if (User.IsInRole(Roles.Guest))
         {
             <form asp-controller="Wishlist" asp-action="Toggle" method="post" class="stb-heart-form">

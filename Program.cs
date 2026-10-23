@@ -12,9 +12,7 @@ using Staybnb.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// =========================================================================
-// 1. DATABASE (EF Core + SQL Server)
-// =========================================================================
+// 1. Database (EF Core + SQL Server)
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
@@ -23,11 +21,9 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-// =========================================================================
-// 2. IDENTITY (users + roles)
-//    - ApplicationUser instead of the default IdentityUser
-//    - AddRoles<IdentityRole>() enables Guest / Host / Admin / SuperAdmin
-// =========================================================================
+// 2. Identity (users + roles)
+// - ApplicationUser instead of the default IdentityUser
+// - AddRoles<IdentityRole>() enables Guest / Host / Admin / SuperAdmin
 builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
     {
         // No email server in this project, so don't require email confirmation
@@ -56,7 +52,7 @@ builder.Services.Configure<SecurityStampValidatorOptions>(options =>
 
 builder.Services.ConfigureApplicationCookie(options =>
 {
-    // Our own AccountController (Part 2) instead of the built-in Identity pages
+    // Use our own AccountController pages instead of the built-in Identity ones
     options.LoginPath = "/Account/Login";
     options.LogoutPath = "/Account/Logout";
     options.AccessDeniedPath = "/Account/AccessDenied";
@@ -64,16 +60,12 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.SlidingExpiration = true;
 });
 
-// =========================================================================
-// 3. MVC + RAZOR PAGES (Razor Pages are used by the built-in Identity UI)
-// =========================================================================
+// 3. MVC + Razor Pages (Razor Pages are used by the built-in Identity UI)
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 
-// =========================================================================
-// 4. APPLICATION SERVICES (Dependency Injection)
-//    AddScoped = one instance per HTTP request (same lifetime as the DbContext)
-// =========================================================================
+// 4. Application services (Dependency Injection)
+// AddScoped = one instance per HTTP request (same lifetime as the DbContext)
 builder.Services.Configure<StaybnbSettings>(builder.Configuration.GetSection("Staybnb"));
 
 builder.Services.AddHttpContextAccessor();
@@ -95,11 +87,9 @@ builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(optio
 
 var app = builder.Build();
 
-// =========================================================================
-// CULTURE: South African formatting, but with "." as the decimal separator.
+// Culture: South African formatting, but with "." as the decimal separator.
 // Windows' en-ZA uses "," for decimals, which makes "1500.50" fail model binding
 // and clash with HTML number inputs / jQuery validation.
-// =========================================================================
 var staybnbCulture = (CultureInfo)CultureInfo.GetCultureInfo("en-ZA").Clone();
 staybnbCulture.NumberFormat.NumberDecimalSeparator = ".";
 staybnbCulture.NumberFormat.CurrencyDecimalSeparator = ".";
@@ -115,9 +105,7 @@ app.UseRequestLocalization(new RequestLocalizationOptions
     SupportedUICultures = new List<CultureInfo> { staybnbCulture }
 });
 
-// =========================================================================
-// 5. HTTP REQUEST PIPELINE (order matters!)
-// =========================================================================
+// 5. HTTP request pipeline (order matters!)
 if (app.Environment.IsDevelopment())
 {
     app.UseMigrationsEndPoint();
@@ -148,9 +136,7 @@ app.MapControllerRoute(
 
 app.MapRazorPages();
 
-// =========================================================================
-// 6. SEED: apply migrations, create roles + the SuperAdmin account
-// =========================================================================
+// 6. Seed: apply migrations, create roles + the SuperAdmin account
 await RoleSeeder.SeedAsync(app.Services);
 
 app.Run();

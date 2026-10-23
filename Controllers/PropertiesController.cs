@@ -37,9 +37,7 @@ namespace Staybnb.Controllers
             _settings = settings.Value;
         }
 
-        // =====================================================================
-        // GALLERY:  /Properties?City=Durban&Type=Cabin&Guests=2&CheckIn=...&CheckOut=...
-        // =====================================================================
+        // Gallery:  /Properties?City=Durban&Type=Cabin&Guests=2&CheckIn=...&CheckOut=...
         [HttpGet]
         public async Task<IActionResult> Index([FromQuery] PropertySearchViewModel search)
         {
@@ -125,10 +123,8 @@ namespace Staybnb.Controllers
             return View(search);
         }
 
-        // =====================================================================
-        // DETAILS:  /Properties/View/5
+        // Details:  /Properties/View/5
         // (method is called Details because "View" is already a method on Controller)
-        // =====================================================================
         [HttpGet]
         [ActionName("View")]
         public async Task<IActionResult> Details(int id, DateTime? checkIn, DateTime? checkOut, int? guests)

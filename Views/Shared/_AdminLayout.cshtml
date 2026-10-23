@@ -32,7 +32,7 @@
     };
     if (isSuperAdmin)
     {
-        // REQUIREMENT: only the SuperAdmin manages users / assigns the Admin role
+        // Only the SuperAdmin gets the Users page
         menu.Insert(1, ("Users", "bi-people", "UserManagement", "Index", Array.Empty<string>()));
     }
 }
@@ -47,7 +47,7 @@
 </head>
 <body class="stb-dashboard-body">
     <div class="stb-dashboard">
-        @* ================= Sidebar ================= *@
+        @* Sidebar *@
         <aside class="stb-sidebar offcanvas-lg offcanvas-start" tabindex="-1" id="adminSidebar" aria-labelledby="adminSidebarLabel">
             <div class="offcanvas-header d-lg-none">
                 <span class="offcanvas-title fw-bold text-stb" id="adminSidebarLabel">staybnb admin</span>
@@ -92,7 +92,7 @@
             </div>
         </aside>
 
-        @* ================= Main ================= *@
+        @* Main *@
         <div class="stb-main">
             <header class="stb-topbar">
                 <button class="btn btn-light d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#adminSidebar" aria-controls="hostSidebar" aria-label="Open menu">

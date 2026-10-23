@@ -6,12 +6,10 @@ using Staybnb.Models.Enums;
 
 namespace Staybnb.Models.ViewModels.Guest
 {
-    // =====================================================================
-    // PROPERTY GALLERY (search + filters)
-    // =====================================================================
+    // Property gallery (search + filters)
     public class PropertySearchViewModel
     {
-        // ---------- Filters (bound from the query string) ----------
+        // Filters (bound from the query string)
         public string? City { get; set; }
         public PropertyType? Type { get; set; }
         public int? Guests { get; set; }
@@ -30,7 +28,7 @@ namespace Staybnb.Models.ViewModels.Guest
 
         public int Page { get; set; } = 1;
 
-        // ---------- Results ----------
+        // Results
         public List<PropertyCardViewModel> Results { get; set; } = new();
         public int TotalResults { get; set; }
         public int TotalPages { get; set; }
@@ -63,9 +61,7 @@ namespace Staybnb.Models.ViewModels.Guest
         public int? StayNights { get; set; }
     }
 
-    // =====================================================================
-    // PROPERTY DETAILS (/Properties/View/5)
-    // =====================================================================
+    // Property details (/Properties/View/5)
     public class PropertyDetailsViewModel
     {
         public HostProperty Property { get; set; } = null!;
@@ -94,9 +90,7 @@ namespace Staybnb.Models.ViewModels.Guest
         public PriceBreakdown InitialPrice { get; set; } = new();
     }
 
-    // =====================================================================
-    // BOOKING: confirm ("Request to book") + create
-    // =====================================================================
+    // Booking: confirm ("Request to book") + create
     public class BookingConfirmViewModel
     {
         [Required]
@@ -117,16 +111,14 @@ namespace Staybnb.Models.ViewModels.Guest
         [Display(Name = "Message to the Host (optional)")]
         public string? GuestMessage { get; set; }
 
-        // ---------- Display only ----------
+        // Display only
         [ValidateNever] public HostProperty? Property { get; set; }
         [ValidateNever] public string? CoverImageUrl { get; set; }
         [ValidateNever] public PriceBreakdown? Price { get; set; }
         [ValidateNever] public string? Problem { get; set; }
     }
 
-    // =====================================================================
-    // MY TRIPS + BOOKING DETAILS
-    // =====================================================================
+    // My trips + booking details
     public class MyTripsViewModel
     {
         /// <summary>upcoming | pending | past | cancelled</summary>
@@ -157,9 +149,7 @@ namespace Staybnb.Models.ViewModels.Guest
         public string? Comment { get; set; }
     }
 
-    // =====================================================================
-    // CHECK-IN WIZARD
-    // =====================================================================
+    // Check-in wizard
     public class CheckInWizardViewModel
     {
         public GuestCheckIn CheckIn { get; set; } = null!;
@@ -175,9 +165,7 @@ namespace Staybnb.Models.ViewModels.Guest
             IsSubmitted ? 100 : (int)Math.Round(100.0 * (CheckIn.CurrentStep - 1) / TotalSteps);
     }
 
-    // =====================================================================
-    // WISHLIST
-    // =====================================================================
+    // Wishlist
     public class WishlistViewModel
     {
         public List<PropertyCardViewModel> Properties { get; set; } = new();

@@ -24,7 +24,7 @@
         <span class="stb-badge stb-badge-@b.Status.ToString().ToLowerInvariant() fs-6">@b.Status</span>
     </div>
 
-    @* ---------- Timeline ---------- *@
+    @* Timeline *@
     @if (isClosed)
     {
         <div class="alert @(b.Status == BookingStatus.Rejected ? "alert-danger" : "alert-secondary")">
@@ -132,7 +132,7 @@
                 </div>
             </div>
 
-            @* ---------- Review ---------- *@
+            @* Review *@
             @if (Model.CanReview)
             {
                 <div class="stb-card mb-4">

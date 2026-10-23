@@ -46,9 +46,7 @@ namespace Staybnb.Controllers
         [HttpGet]
         public IActionResult Index() => RedirectToAction(nameof(Dashboard));
 
-        // =====================================================================
-        // DASHBOARD
-        // =====================================================================
+        // Dashboard
 
         [HttpGet]
         public async Task<IActionResult> Dashboard()
@@ -90,9 +88,7 @@ namespace Staybnb.Controllers
             return View(model);
         }
 
-        // =====================================================================
-        // APPLICATION REVIEW
-        // =====================================================================
+        // Application review
 
         // GET: /Admin/HostRequests?filter=pending&search=cape
         //      filter = pending (default) | approved | rejected | all
@@ -201,9 +197,7 @@ namespace Staybnb.Controllers
                 ? RedirectToAction(nameof(HostRequests))
                 : RedirectToAction(nameof(ReviewApplication), new { id });
         }
-            // =====================================================================
-        // BOOKINGS OVERVIEW (read-only)
-        // =====================================================================
+            // Bookings overview (read-only)
 
         // GET: /Admin/Bookings?status=Pending&search=durban
         [HttpGet]
@@ -241,9 +235,7 @@ namespace Staybnb.Controllers
             });
         }
 
-        // =====================================================================
-        // PROPERTIES OVERVIEW + quality control (suspend / reactivate)
-        // =====================================================================
+        // Properties overview + quality control (suspend / reactivate)
 
         // GET: /Admin/Properties?filter=active&search=cabin
         [HttpGet]
@@ -329,9 +321,7 @@ namespace Staybnb.Controllers
             return RedirectToAction(nameof(Properties), new { filter = returnFilter });
         }
 
-        // =====================================================================
-        // SYSTEM AUDIT (ActivityLog)
-        // =====================================================================
+        // System audit (ActivityLog)
 
         // GET: /Admin/ActivityLogs?type=Login&search=elsie&from=2026-01-01&to=2026-01-31&page=2
         [HttpGet]
